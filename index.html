@@ -1480,10 +1480,41 @@ const oldSave=save;save=function(){const y=data29().year;for(const p of state.pl
   const moving=[['realism30Used','market'],['catalog303','market'],['vehicle28Panel','technical'],['v19GaragePanel','technical']];
   const preserved=new Map();
   for(const [id] of moving){const node=q(id);if(node)preserved.set(id,node)}
-  const mech=[...garage.querySelectorAll('.card'),...(q('road18Content')?.querySelectorAll('.card')||[])].find(el=>el.querySelector('[data-road-mech]'));
+  
+const mech = [
+  ...garage.querySelectorAll('.card'),
+  ...(q('road18Content')?.querySelectorAll('.card') || [])
+].find(el =>
+  el !== root &&
+  !el.contains(root) &&
+  !root.contains(el) &&
+  el.querySelector('[data-road-mech]')
+);
+
   // Keep nodes attached to the document while the shell is replaced.
-  for(const node of preserved.values())garage.appendChild(node);
-  if(mech)garage.appendChild(mech);
+
+for (const node of preserved.values()) {
+  if (
+    node !== garage &&
+    node !== root &&
+    !node.contains(garage) &&
+    !node.contains(root) &&
+    !root.contains(node)
+  ) {
+    garage.appendChild(node);
+  }
+}
+
+if (
+  mech &&
+  mech !== garage &&
+  mech !== root &&
+  !mech.contains(garage) &&
+  !mech.contains(root)
+) {
+  garage.appendChild(mech);
+}
+
   // The old pre-defined purchase grid is replaced by the named catalogue.
   [...garage.querySelectorAll('.card')].filter(el=>el!==root&&el.querySelector('[data-road-buy]')).forEach(el=>el.remove());
   [...q('road18Content')?.querySelectorAll('.card')||[]].filter(el=>el.querySelector('[data-road-buy]')).forEach(el=>el.remove());
