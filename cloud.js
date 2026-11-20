@@ -24,10 +24,17 @@ const style = document.createElement('style');
 style.textContent = `#mc-cloud{position:fixed;right:12px;bottom:12px;z-index:99999;max-width:min(370px,calc(100vw - 24px));background:#18212c;color:#fff;border:1px solid #465565;border-radius:14px;padding:12px;font:13px system-ui;box-shadow:0 10px 32px #0008}#mc-cloud button{background:#26394b;color:#fff;border:1px solid #60778b;border-radius:8px;padding:8px 10px;margin:4px;cursor:pointer}#mc-cloud button:disabled{opacity:.5}#mc-cloud .mc-note{font-size:12px;opacity:.85;margin:7px 0}#mc-cloud .mc-actions{display:flex;flex-wrap:wrap}#mc-cloud .mc-danger{color:#ffc7b8}`;
 document.head.append(style);
 const panel = document.createElement('aside'); panel.id = 'mc-cloud';
-panel.innerHTML = `<strong>☁ Motorsport Career · Cloud v3.1</strong><div id="mc-cloud-user" class="mc-note">Connecting…</div><div id="mc-cloud-status" class="mc-note" role="status">Local career is preserved.</div><div class="mc-actions"><button id="mc-login">Google login</button><button id="mc-logout" hidden>Logout</button><button id="mc-sync" hidden>Sync now</button><button id="mc-download">Backup JSON</button></div><div id="mc-cloud-choice" hidden><p id="mc-cloud-choice-text"></p><button id="mc-use-local">Upload this device</button><button id="mc-use-cloud">Load cloud career</button></div>`;
+panel.innerHTML = `<button type="button" id="mc-cloud-toggle" aria-expanded="false" aria-controls="mc-cloud-details" aria-label="Open cloud saves">☁ <span id="mc-cloud-indicator">✓</span></button><div id="mc-cloud-details" hidden><strong>Motorsport Career · Cloud v3.1.1</strong><div id="mc-cloud-user" class="mc-note">Connecting…</div><div id="mc-cloud-status" class="mc-note" role="status">Local career is preserved.</div><div class="mc-actions"><button id="mc-login">Google login</button><button id="mc-logout" hidden>Logout</button><button id="mc-sync" hidden>Sync now</button><button id="mc-download">Backup JSON</button></div><div id="mc-cloud-choice" hidden><p id="mc-cloud-choice-text"></p><button id="mc-use-local">Upload this device</button><button id="mc-use-cloud">Load cloud career</button></div></div>`;
 document.body.append(panel);
+const cloudToggle=panel.querySelector('#mc-cloud-toggle');
+const cloudDetails=panel.querySelector('#mc-cloud-details');
+const setCloudOpen=open=>{cloudDetails.hidden=!open;cloudToggle.setAttribute('aria-expanded',String(open));cloudToggle.setAttribute('aria-label',open?'Close cloud saves':'Open cloud saves');panel.classList.toggle('mc-expanded',open)};
+cloudToggle.addEventListener('click',()=>setCloudOpen(cloudDetails.hidden));
+const cloudCss=document.createElement('style');
+cloudCss.textContent=`#mc-cloud:not(.mc-expanded){width:auto;max-width:none;padding:4px;border-radius:999px}#mc-cloud:not(.mc-expanded) #mc-cloud-toggle{border:0;background:transparent;padding:6px 10px;margin:0;font-size:15px}#mc-cloud-details[hidden]{display:none!important}#mc-cloud.mc-expanded{max-height:min(78dvh,540px);overflow:auto}#mc-cloud-toggle{min-width:46px}#mc-cloud-indicator{color:#8fe3c2}#mc-cloud.mc-expanded #mc-cloud-toggle{display:block;margin-left:auto}@media(max-width:600px){#mc-cloud{right:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px))}#mc-cloud.mc-expanded{width:min(360px,calc(100vw - 16px))}}`;
+document.head.append(cloudCss);
 const $ = id => document.getElementById(id);
-const status = (msg, error=false) => { $('mc-cloud-status').textContent=msg; $('mc-cloud-status').classList.toggle('mc-danger',error); };
+const status = (msg, error=false) => { $('mc-cloud-status').textContent=msg; $('mc-cloud-status').classList.toggle('mc-danger',error); $('mc-cloud-indicator').textContent=error?'!':'✓'; if(error)setCloudOpen(true); };
 const local = () => window.mcCloudRead?.() || null;
 const valid = raw => { if (!raw) return false; try {const x=JSON.parse(raw);return x&&typeof x==='object'&&!Array.isArray(x);} catch{return false;} };
 const ref = () => doc(db,'users',user.uid,'career','main');
@@ -39,7 +46,7 @@ $('mc-logout').onclick=async()=>{syncEnabled=false;await signOut(auth);};
 $('mc-sync').onclick=()=>sync();
 getRedirectResult(auth).catch(e=>status('Redirect login failed: '+e.message,true));
 
-function setChoice(show, message='') { $('mc-cloud-choice').hidden=!show; $('mc-cloud-choice-text').textContent=message; }
+function setChoice(show, message='') { $('mc-cloud-choice').hidden=!show; $('mc-cloud-choice-text').textContent=message; if(show)setCloudOpen(true); }
 function recordSynced(raw,rev) { revision=rev;localStorage.setItem(localRevisionKey(),String(rev));localStorage.setItem(syncedSnapshotKey(),raw||''); }
 async function remote() { const snap=await getDoc(ref());return snap.exists()?snap.data():null; }
 async function sync() {
