@@ -1418,7 +1418,15 @@ const oldSave=save;save=function(){const y=data29().year;for(const p of state.pl
  function catalog303Render(){
   const garage=q('career20-garage');if(!garage)return;
   let panel=q('catalog303');if(!panel){panel=document.createElement('div');panel.id='catalog303';panel.className='card'}
-  const market=q('realism30Used');if(!panel.isConnected)garage.insertBefore(panel,market?.nextSibling||garage.firstChild);
+  // The catalogue may already be mounted inside the Vehicle Market tab.
+  // Never use a sibling from another parent as insertBefore's reference.
+  const marketTab=q('g304-market');
+  const destination=marketTab && garage.contains(marketTab) ? marketTab : garage;
+  if(panel.parentElement!==destination){
+    const market=q('realism30Used');
+    const anchor=market?.parentElement===destination ? market.nextSibling : null;
+    destination.insertBefore(panel,anchor);
+  }
   const en=localStorage.getItem('mc-ui-language')==='en';
   // GT7 rows come exclusively from the workbook: no legacy Gr.1/Gr.2 duplicates in the catalogue.
   const rows=catalog303Game==='GT7'
