@@ -1481,49 +1481,30 @@ const oldSave=save;save=function(){const y=data29().year;for(const p of state.pl
   const preserved=new Map();
   for(const [id] of moving){const node=q(id);if(node)preserved.set(id,node)}
   
-const mech = [
-  ...garage.querySelectorAll('.card'),
-  ...(q('road18Content')?.querySelectorAll('.card') || [])
-].find(el =>
-  el !== root &&
-  !el.contains(root) &&
-  !root.contains(el) &&
-  el.querySelector('[data-road-mech]')
-);
+// Select the mechanic's own card, never a parent containing the garage shell.
+  const mechanicButton = [...document.querySelectorAll('[data-road-mech]')]
+    .find(button => !root.contains(button));
+  const mech = mechanicButton?.closest('.card') || null;
 
-  // Keep nodes attached to the document while the shell is replaced.
-
-for (const node of preserved.values()) {
-  if (
-    node !== garage &&
-    node !== root &&
-    !node.contains(garage) &&
-    !node.contains(root) &&
-    !root.contains(node)
-  ) {
-    garage.appendChild(node);
+  // Move only if the destination is not inside the source node.
+  function safeMove(node, destination) {
+    if (!node || !destination || node === destination || node.contains(destination)) return false;
+    if (node.parentElement !== destination) destination.appendChild(node);
+    return true;
   }
-}
 
-if (
-  mech &&
-  mech !== garage &&
-  mech !== root &&
-  !mech.contains(garage) &&
-  !mech.contains(root)
-) {
-  garage.appendChild(mech);
-}
+  for (const node of preserved.values()) safeMove(node, garage);
+  if (mech && mech !== root && !mech.contains(root)) safeMove(mech, garage);
 
   // The old pre-defined purchase grid is replaced by the named catalogue.
   [...garage.querySelectorAll('.card')].filter(el=>el!==root&&el.querySelector('[data-road-buy]')).forEach(el=>el.remove());
   [...q('road18Content')?.querySelectorAll('.card')||[]].filter(el=>el.querySelector('[data-road-buy]')).forEach(el=>el.remove());
-  root.innerHTML='<div class="eyebrow">VEHICLE MANAGEMENT · v3.0.5</div><h2>'+garage304T('Gestione vetture','Vehicle Management')+'</h2><div class="career20-tabs" role="tablist" aria-label="Vehicle Management"><button type="button" data-g304-tab="owned">'+garage304T('Le mie vetture','My Vehicles')+'</button><button type="button" data-g304-tab="market">'+garage304T('Mercato vetture','Vehicle Market')+'</button><button type="button" data-g304-tab="technical">'+garage304T('Centro tecnico','Technical Center')+'</button></div><div id="g304-owned" class="g304-panel"></div><div id="g304-market" class="g304-panel"></div><div id="g304-technical" class="g304-panel"></div>';
+  root.innerHTML='<div class="eyebrow">VEHICLE MANAGEMENT · v3.0.6</div><h2>'+garage304T('Gestione vetture','Vehicle Management')+'</h2><div class="career20-tabs" role="tablist" aria-label="Vehicle Management"><button type="button" data-g304-tab="owned">'+garage304T('Le mie vetture','My Vehicles')+'</button><button type="button" data-g304-tab="market">'+garage304T('Mercato vetture','Vehicle Market')+'</button><button type="button" data-g304-tab="technical">'+garage304T('Centro tecnico','Technical Center')+'</button></div><div id="g304-owned" class="g304-panel"></div><div id="g304-market" class="g304-panel"></div><div id="g304-technical" class="g304-panel"></div>';
   q('g304-owned').innerHTML=garage304Cards()+garage304Legacy();
   q('g304-market').innerHTML=garage304MarketIntro();
   q('g304-technical').innerHTML='<h2>'+garage304T('Centro tecnico','Technical Center')+'</h2><p class="helper">'+garage304T('Manutenzione, meccanico, configurazione PP e tuning delle vetture disponibili.','Maintenance, mechanic, PP configuration and tuning for your available vehicles.')+'</p>';
-  for(const [id,tab] of moving){const node=preserved.get(id);if(node)q('g304-'+tab).appendChild(node)}
-  if(mech)q('g304-technical').appendChild(mech);
+  for(const [id,tab] of moving){safeMove(preserved.get(id),q('g304-'+tab))}
+  safeMove(mech,q('g304-technical'));
   root.querySelectorAll('[data-g304-tab]').forEach(b=>{const active=b.dataset.g304Tab===garage304State.tab;b.setAttribute('aria-selected',String(active));q('g304-'+b.dataset.g304Tab).hidden=!active;b.onclick=()=>{garage304State.tab=b.dataset.g304Tab;root.querySelectorAll('[data-g304-tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));root.querySelectorAll('.g304-panel').forEach(x=>x.hidden=x.id!=='g304-'+garage304State.tab)}});
   root.querySelector('#garage304KartBuy')?.addEventListener('click',()=>road18Purchase('kart'));
   root.querySelectorAll('[data-g304-sell]').forEach(b=>b.onclick=()=>road18Sell(b.dataset.g304Sell));
