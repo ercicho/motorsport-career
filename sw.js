@@ -1,4 +1,4 @@
-const CACHE='motorsport-career-cache-v312';
+const CACHE='motorsport-career-cache-v313';
 const FILES=[...new Set(['./','./index.html','./cloud.js','./gt7-vehicles.json','./manifest.webmanifest','./icon.svg','./hero.jpg','./stage-kart.jpg','./stage-club.jpg','./stage-gt.jpg','./career-stages.png'])];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('motorsport-career-cache-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

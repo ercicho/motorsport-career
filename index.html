@@ -1414,22 +1414,46 @@ const oldSave=save;save=function(){const y=data29().year;for(const p of state.pl
   const id=catalog303Id(name);
   if(!road18Cars.some(c=>c.id===id))road18Cars.push({id,name,game,cost:gt312Vehicles.find(v=>v.model===name)?gt312Price(gt312Vehicles.find(v=>v.model===name)):cost,category:carCategory,realClass:gt312Vehicles.find(v=>v.model===name)?.realClass||null,subClass:gt312Vehicles.find(v=>v.model===name)?.subClass||null,sale:Math.round(cost*.58),catalog303:true});
  }}
- let catalog303Game='GT7',catalog303Category='all';
+ let catalog303Game='GT7',catalog303Category='all',catalog313Sub='all',catalog313Maker='all',catalog313Market='all';
  function catalog303Render(){
   const garage=q('career20-garage');if(!garage)return;
   let panel=q('catalog303');if(!panel){panel=document.createElement('div');panel.id='catalog303';panel.className='card'}
-  const market=q('realism30Used');if(panel.parentElement!==garage)garage.insertBefore(panel,market?.nextSibling||garage.firstChild);
+  const market=q('realism30Used');if(!panel.isConnected)garage.insertBefore(panel,market?.nextSibling||garage.firstChild);
   const en=localStorage.getItem('mc-ui-language')==='en';
-  const cats=[...new Set(catalog303.filter(c=>c[0]===catalog303Game).map(c=>c[1]))].sort();
-  const shown=catalog303.filter(c=>c[0]===catalog303Game&&(catalog303Category==='all'||c[1]===catalog303Category));
-  panel.innerHTML='<h2>'+(en?'Vehicle catalogue · real motorsport classes':'Catalogo vetture · classi motorsport reali')+'</h2><p class="helper">'+(en?'Classification follows the supplied workbook. GT7 race eligibility is NOT verified; actual game restrictions must be checked before entering. Unverified model years are review-only.':'Classificazione dall’Excel fornito. L’ammissibilità agli eventi GT7 NON è verificata: controlla i limiti nel gioco. I modelli senza anno verificato sono solo consultabili.')+'</p>'+
-  '<div class="row"><label>'+(en?'Simulator':'Simulatore')+' <select id="catalog303Game"><option value="GT7" '+(catalog303Game==='GT7'?'selected':'')+'>GT7</option><option value="ACC" '+(catalog303Game==='ACC'?'selected':'')+'>ACC</option></select></label><label>'+(en?'Real class':'Classe reale')+' <select id="catalog303Category"><option value="all">'+(en?'All':'Tutte')+'</option>'+cats.map(c=>'<option value="'+esc(c)+'" '+(catalog303Category===c?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label></div><div class="world26-cols">'+shown.map(([game,category,name,tier,cost])=>{
-    const v=gt312Vehicles.find(x=>x.model===name),id=catalog303Id(name),owned=road18CarOwned(id),locked=!road18KartDone(),actualCost=v?gt312Price(v):cost;
-    const isNew=!v||v.market==='new';const affordable=balance()>=actualCost;
-    return '<div class="world26-box"><small>'+esc(v?.realClass||category)+(v?.subClass?' · '+esc(v.subClass):'')+'</small><h3>'+esc(name)+'</h3>'+(v?'<p class="helper">'+esc(v.manufacturer)+' · '+(v.year||'—')+' · PP '+(v.pp??'—')+' · '+esc(v.drivetrain||'—')+'</p><p class="helper">'+gt312MarketLabel(v,en)+'</p>':'')+'<p class="helper">'+(game==='GT7'?actualCost.toLocaleString('it-IT')+' Cr.':'ACC · '+(en?'team supplied':'fornita dal team'))+'</p>'+(game==='GT7'?'<button data-catalog303-buy="'+esc(id)+'" '+(owned||locked||!affordable||!isNew?'disabled':'')+'>'+(en?'Buy new':'Acquista nuova')+'</button><p class="helper">'+(owned?(en?'Owned':'Già posseduta'):!isNew?(en?'Available only through used market or pending review':'Disponibile solo tramite usato o in revisione'):locked?(en?'Complete Karting Academy':'Completa Karting Academy'):!affordable?(en?'Insufficient credits':'Crediti insufficienti'):(en?'Available to buy':'Acquistabile'))+'</p>':'<p class="helper">'+(en?'Available via compatible team contract':'Disponibile tramite contratto team compatibile')+'</p>')+'</div>';
+  // GT7 rows come exclusively from the workbook: no legacy Gr.1/Gr.2 duplicates in the catalogue.
+  const rows=catalog303Game==='GT7'
+    ?gt312Vehicles.map(v=>({game:'GT7',category:v.realClass||'Unclassified',sub:v.subClass||'',maker:v.manufacturer||'',market:v.market||'review',name:v.model,v,tier:'Unrated',cost:gt312Price(v)}))
+    :catalog303.filter(c=>c[0]==='ACC').map(c=>({game:'ACC',category:c[1],sub:'',maker:c[2].split(' ')[0],market:'team',name:c[2],tier:c[3],cost:c[4],v:null}));
+  const uniq=values=>[...new Set(values.filter(Boolean))].sort((x,y)=>x.localeCompare(y));
+  const cats=uniq(rows.map(r=>r.category));
+  if(catalog303Category!=='all'&&!cats.includes(catalog303Category))catalog303Category='all';
+  const byClass=rows.filter(r=>catalog303Category==='all'||r.category===catalog303Category);
+  const subs=uniq(byClass.map(r=>r.sub));
+  if(catalog313Sub!=='all'&&!subs.includes(catalog313Sub))catalog313Sub='all';
+  const bySub=byClass.filter(r=>catalog313Sub==='all'||r.sub===catalog313Sub);
+  const makers=uniq(bySub.map(r=>r.maker));
+  if(catalog313Maker!=='all'&&!makers.includes(catalog313Maker))catalog313Maker='all';
+  const shown=bySub.filter(r=>(catalog313Maker==='all'||r.maker===catalog313Maker)&&(catalog313Market==='all'||r.market===catalog313Market));
+  const option=(value,label,selected)=>'<option value="'+esc(value)+'"'+(selected===value?' selected':'')+'>'+esc(label)+'</option>';
+  const select=(id,label,values,selected,labels={})=>'<label>'+label+'<select id="'+id+'">'+option('all',en?'All':'Tutte',selected)+values.map(v=>option(v,labels[v]||v,selected)).join('')+'</select></label>';
+  const marketLabels={new:en?'New':'Nuove',used:en?'Used':'Usate',historic:en?'Historic':'Storiche',review:en?'To review':'Da verificare',team:en?'Team supplied':'Fornite dal team'};
+  panel.innerHTML='<h2>'+(en?'Vehicle catalogue · real motorsport classes':'Catalogo vetture · classi motorsport reali')+'</h2><p class="helper">'+(en?'Classification follows the supplied workbook. GT7 event eligibility remains unverified.':'Classificazione dall’Excel fornito. Ammissibilità ai singoli eventi GT7 non ancora verificata.')+'</p>'+
+  '<div class="catalog313-filters"><label>'+(en?'Simulator':'Simulatore')+'<select id="catalog303Game">'+option('GT7','GT7',catalog303Game)+option('ACC','ACC',catalog303Game)+'</select></label>'+
+  select('catalog303Category',en?'Real class':'Classe reale',cats,catalog303Category)+
+  select('catalog313Sub',en?'Subclass':'Sottoclasse',subs,catalog313Sub)+
+  select('catalog313Maker',en?'Manufacturer':'Costruttore',makers,catalog313Maker)+
+  select('catalog313Market',en?'Market':'Mercato',catalog303Game==='ACC'?['team']:['new','used','historic','review'],catalog313Market,marketLabels)+'</div>'+
+  '<p id="catalog313Count" class="helper" role="status"><strong>'+shown.length+'</strong> / '+rows.length+' '+(en?'vehicles':'vetture')+'</p>'+
+  '<div class="world26-cols">'+shown.map(r=>{
+    const v=r.v,id=catalog303Id(r.name),owned=road18CarOwned(id),locked=!road18KartDone(),affordable=balance()>=r.cost;
+    const isNew=!v||v.market==='new';
+    return '<div class="world26-box"><small>'+esc(r.category)+(r.sub?' · '+esc(r.sub):'')+'</small><h3>'+esc(r.name)+'</h3>'+(v?'<p class="helper">'+esc(v.manufacturer)+' · '+(v.year||'—')+' · PP '+(v.pp??'—')+' · '+esc(v.drivetrain||'—')+'</p><p class="helper">'+gt312MarketLabel(v,en)+'</p>':'')+'<p class="helper">'+(r.game==='GT7'?r.cost.toLocaleString('it-IT')+' Cr.':'ACC · '+(en?'team supplied':'fornita dal team'))+'</p>'+(r.game==='GT7'?'<button data-catalog303-buy="'+esc(id)+'" '+(owned||locked||!affordable||!isNew?'disabled':'')+'>'+(en?'Buy new':'Acquista nuova')+'</button><p class="helper">'+(owned?(en?'Owned':'Già posseduta'):!isNew?(en?'Used market or review':'Mercato usato o in revisione'):locked?(en?'Complete Karting Academy':'Completa Karting Academy'):!affordable?(en?'Insufficient credits':'Crediti insufficienti'):(en?'Available to buy':'Acquistabile'))+'</p>':'<p class="helper">'+(en?'Available via team contract':'Disponibile tramite contratto team')+'</p>')+'</div>';
   }).join('')+'</div>';
-  q('catalog303Game').onchange=e=>{catalog303Game=e.target.value;catalog303Category='all';catalog303Render()};
-  q('catalog303Category').onchange=e=>{catalog303Category=e.target.value;catalog303Render()};
+  panel.querySelector('#catalog303Game').onchange=e=>{catalog303Game=e.target.value;catalog303Category='all';catalog313Sub='all';catalog313Maker='all';catalog313Market='all';catalog303Render()};
+  panel.querySelector('#catalog303Category').onchange=e=>{catalog303Category=e.target.value;catalog313Sub='all';catalog313Maker='all';catalog303Render()};
+  panel.querySelector('#catalog313Sub').onchange=e=>{catalog313Sub=e.target.value;catalog313Maker='all';catalog303Render()};
+  panel.querySelector('#catalog313Maker').onchange=e=>{catalog313Maker=e.target.value;catalog303Render()};
+  panel.querySelector('#catalog313Market').onchange=e=>{catalog313Market=e.target.value;catalog303Render()};
   panel.querySelectorAll('[data-catalog303-buy]').forEach(b=>b.onclick=()=>road18Purchase(b.dataset.catalog303Buy));
  }
  function weather303Enhance(){
@@ -1520,7 +1544,7 @@ const oldSave=save;save=function(){const y=data29().year;for(const p of state.pl
   // The old pre-defined purchase grid is replaced by the named catalogue.
   [...garage.querySelectorAll('.card')].filter(el=>el!==root&&el.querySelector('[data-road-buy]')).forEach(el=>el.remove());
   [...q('road18Content')?.querySelectorAll('.card')||[]].filter(el=>el.querySelector('[data-road-buy]')).forEach(el=>el.remove());
-  root.innerHTML='<div class="eyebrow">VEHICLE MANAGEMENT · v3.1.2</div><h2>'+garage304T('Gestione vetture','Vehicle Management')+'</h2><div class="career20-tabs" role="tablist" aria-label="Vehicle Management"><button type="button" data-g304-tab="owned">'+garage304T('Le mie vetture','My Vehicles')+'</button><button type="button" data-g304-tab="market">'+garage304T('Mercato vetture','Vehicle Market')+'</button><button type="button" data-g304-tab="technical">'+garage304T('Centro tecnico','Technical Center')+'</button></div><div id="g304-owned" class="g304-panel"></div><div id="g304-market" class="g304-panel"></div><div id="g304-technical" class="g304-panel"></div>';
+  root.innerHTML='<div class="eyebrow">VEHICLE MANAGEMENT · v3.1.3</div><h2>'+garage304T('Gestione vetture','Vehicle Management')+'</h2><div class="career20-tabs" role="tablist" aria-label="Vehicle Management"><button type="button" data-g304-tab="owned">'+garage304T('Le mie vetture','My Vehicles')+'</button><button type="button" data-g304-tab="market">'+garage304T('Mercato vetture','Vehicle Market')+'</button><button type="button" data-g304-tab="technical">'+garage304T('Centro tecnico','Technical Center')+'</button></div><div id="g304-owned" class="g304-panel"></div><div id="g304-market" class="g304-panel"></div><div id="g304-technical" class="g304-panel"></div>';
   q('g304-owned').innerHTML=garage304Cards()+garage304Legacy();
   q('g304-market').innerHTML=garage304MarketIntro();
   q('g304-technical').innerHTML='<h2>'+garage304T('Centro tecnico','Technical Center')+'</h2><p class="helper">'+garage304T('Manutenzione, meccanico, configurazione PP e tuning delle vetture disponibili.','Maintenance, mechanic, PP configuration and tuning for your available vehicles.')+'</p>';
@@ -1656,6 +1680,7 @@ const oldSave=save;save=function(){const y=data29().year;for(const p of state.pl
 #setup297 label{display:block;margin:16px 0 6px}#setup297 input{width:100%;box-sizing:border-box;background:#0f1722;color:#fff;border:1px solid #5b6b7e;border-radius:9px;padding:12px;font-size:16px}
 #setup297 #setup297start{width:100%;margin-top:20px;background:#cc3048;color:white;padding:14px;border:0;border-radius:9px;font-weight:700;cursor:pointer}#setup297 #setup297start:disabled{opacity:.45;cursor:not-allowed}
 </style>
+<style id="catalog313css">.catalog313-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.catalog313-filters label{min-width:0}.catalog313-filters select{width:100%}</style>
 <script id="setup298-script">
 (()=>{
  const KEY='motorsport-career-v01';
@@ -1670,6 +1695,9 @@ const oldSave=save;save=function(){const y=data29().year;for(const p of state.pl
  root.querySelectorAll('[data-setup-lang]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.setupLang)));
  let existing={};try{existing=JSON.parse(localStorage.getItem(KEY)||'{}').profile||{}}catch{}
  const ready=Boolean(String(existing.driver||'').trim()&&String(existing.nationality||'').trim()&&Number.isInteger(Number(existing.raceNumber))&&Number(existing.raceNumber)>=1&&Number(existing.raceNumber)<=999);
+ function profileReady(){let profile={};try{profile=JSON.parse(localStorage.getItem(KEY)||'{}').profile||{}}catch{}return Boolean(String(profile.driver||'').trim()&&String(profile.nationality||'').trim()&&Number.isInteger(Number(profile.raceNumber))&&Number(profile.raceNumber)>=1&&Number(profile.raceNumber)<=999);}
+ function dismissAfterCloudRestore(){if(!profileReady())return;root.hidden=true;root.remove();const gate=$('driver224Gate');if(gate)gate.hidden=true;}
+ window.addEventListener('mc-cloud-restored',dismissAfterCloudRestore);
  if(ready){root.remove();return;}
  $('setup298name').value=existing.driver||'';$('setup298nation').value=existing.nationality||'';$('setup298number').value=existing.raceNumber||'';$('setup298discipline').value=existing.discipline||'GT / Endurance';
  // Keep the old registration dialog hidden while the unified setup is open.
