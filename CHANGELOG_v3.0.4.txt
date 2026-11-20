@@ -1,0 +1,9 @@
+Motorsport Career v3.0.4 - Vehicle Management Redesign
+- Three tabs: My Vehicles, Vehicle Market, Technical Center.
+- Removes legacy pre-defined purchase grid, keeps original ownership state and purchase/sale logic.
+- Kart can be purchased from Vehicle Market during Academy.
+- New/used markets are together; used offers use named catalogue cars rather than generic Gr. classes.
+- Legacy generic cars can be converted for free to a named model of the same category, preserving technical condition.
+- Team-supplied vehicles shown separately from owned cars.
+- No automatic reset or balance changes.
+- Weather Center and existing game systems unchanged.
