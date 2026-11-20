@@ -1,5 +1,27 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v2.9.9</title><script>document.documentElement.lang=localStorage.getItem("mc-ui-language")==="en"?"en":"it";</script><style>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v2.9.9</title><script>
+// Bridge deliberately uses the existing career state and preserves legacy save semantics.
+const MC_CLOUD_KEY = 'motorsport-career-v01';
+window.mcCloudLocalSave = function(value) {
+  localStorage.setItem(MC_CLOUD_KEY, value);
+  localStorage.setItem('mc-cloud-local-modified', String(Date.now()));
+  window.dispatchEvent(new CustomEvent('mc-career-changed'));
+};
+window.mcCloudRead = () => localStorage.getItem(MC_CLOUD_KEY);
+window.mcCloudRestore = function(json) {
+  const incoming = JSON.parse(json);
+  if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw Error('Invalid career data');
+  state = {...empty(), ...incoming};
+  state.championships ||= {};
+  state.ledger = Array.isArray(state.ledger) ? state.ledger : [];
+  state.settings ||= {startingFunds:25000};
+  localStorage.setItem(MC_CLOUD_KEY, JSON.stringify(state));
+  localStorage.setItem('mc-cloud-local-modified', String(Date.now()));
+  render();
+  window.dispatchEvent(new Event('mc-cloud-restored'));
+};
+</script>
+<script>document.documentElement.lang=localStorage.getItem("mc-ui-language")==="en"?"en":"it";</script><style>
 :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#edf0f3;background:#0c1016}*{box-sizing:border-box}body{margin:0}header{padding:24px 18px 30px;background:linear-gradient(105deg,#111923 40%,#253342);border-bottom:1px solid #343d48}h1{font-size:clamp(24px,4vw,36px);margin:6px 0}h2{font-size:20px}small,.muted{color:#aab4c1}.wrap{max-width:1000px;margin:auto;padding:18px}nav{display:flex;gap:8px;overflow:auto;padding:12px 16px;background:#111720;border-bottom:1px solid #303a46}button,.btn{border:1px solid #465261;border-radius:10px;background:#222b37;color:#edf0f3;padding:11px 13px;cursor:pointer;font:inherit}button.active,.primary{background:#d5e4f0;color:#111923;font-weight:700;border-color:#d5e4f0}section{display:none}section.active{display:block}.card{background:#181f29;border:1px solid #343e4b;border-radius:15px;padding:17px;margin:12px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px}.stat{font-size:26px;font-weight:800;color:#f1f5f9;overflow-wrap:anywhere}label{display:block;margin:10px 0 5px;font-size:13px;color:#c2ccd7}input,select,textarea{width:100%;padding:11px;border-radius:9px;border:1px solid #4b5665;background:#111822;color:#fff;font:inherit}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px;text-align:left;border-bottom:1px solid #333e4c}th{color:#b9c7d6}.scroll{overflow-x:auto}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row>*{flex:1;min-width:120px}.danger{background:#552b30}.hero{position:relative;overflow:hidden;border-radius:16px;min-height:185px;background:linear-gradient(110deg,#141d28 10%,#293747 75%);border:1px solid #465261;padding:22px;margin:12px 0}.hero svg{position:absolute;right:-30px;bottom:-15px;width:60%;height:auto;opacity:.65}.hero-content{position:relative;z-index:1;max-width:60%}.eyebrow{font-size:11px;letter-spacing:.17em;color:#bcc9d6;text-transform:uppercase}.chip{display:inline-block;padding:5px 9px;border-radius:30px;background:#303d4b;color:#e4edf6;font-size:12px}.event-meta{color:#aebccc;font-size:13px}.template{border-left:3px solid #8ba4bd}.locked{border-left:3px solid #d99a55}.ready{border-left:3px solid #78b9b5}.pill{display:inline-block;padding:4px 8px;border-radius:6px;background:#293644;color:#e3ebf4;font-size:12px;margin:3px 4px 3px 0}.warning{color:#f4c38e}.success{color:#a7dfc8}button:disabled{opacity:.48;cursor:not-allowed}.smallbutton{font-size:12px;padding:7px 10px}.helper{color:#b7c4d2;font-size:13px}footer{padding:25px;text-align:center;color:#a5b1bf;font-size:12px}@media(max-width:480px){.wrap{padding:10px}header{padding:16px}nav{padding:10px}.card{padding:12px}.hero-content{max-width:85%}.hero svg{width:85%;opacity:.3}}
 
 /* Visual refresh v0.6 */
@@ -24,7 +46,7 @@
 </style>
 <script>
 
-const KEY='motorsport-career-v01';const licenses=['Nazionale B','Nazionale A','Internazionale B','Internazionale A','Superlicenza','Master Nazionale B','Master Nazionale A','Master Internazionale B','Master Internazionale A','Master Superlicenza'];const empty=()=>({championships:{},profile:{driver:'',discipline:'GT / Endurance',bio:''},licences:{},circuits:[],races:[],plans:[],ledger:[],settings:{startingFunds:25000}});let state;try{state={...empty(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{state=empty()}state.championships=state.championships||{};state.ledger=Array.isArray(state.ledger)?state.ledger:[];state.settings=state.settings||{startingFunds:25000};const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function save(){localStorage.setItem(KEY,JSON.stringify(state));render()}const pages=[['home','Dashboard'],['profile','Pilota'],['licences','Patenti'],['circuits','Circuiti'],['races','Gare'],['calendar','Calendario'],['standings','Classifiche'],['finance','Finanze'],['data','Backup']];$('nav').innerHTML=pages.map(([id,name],i)=>`<button data-page="${id}" class="${i===0?'active':''}">${name}</button>`).join('');$('nav').onclick=e=>{const b=e.target.closest('[data-page]');if(!b)return;document.querySelectorAll('section').forEach(s=>s.classList.toggle('active',s.id===b.dataset.page));document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x===b))};$('home').classList.add('active');
+const KEY='motorsport-career-v01';const licenses=['Nazionale B','Nazionale A','Internazionale B','Internazionale A','Superlicenza','Master Nazionale B','Master Nazionale A','Master Internazionale B','Master Internazionale A','Master Superlicenza'];const empty=()=>({championships:{},profile:{driver:'',discipline:'GT / Endurance',bio:''},licences:{},circuits:[],races:[],plans:[],ledger:[],settings:{startingFunds:25000}});let state;try{state={...empty(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{state=empty()}state.championships=state.championships||{};state.ledger=Array.isArray(state.ledger)?state.ledger:[];state.settings=state.settings||{startingFunds:25000};const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function save(){mcCloudLocalSave(JSON.stringify(state));render()}const pages=[['home','Dashboard'],['profile','Pilota'],['licences','Patenti'],['circuits','Circuiti'],['races','Gare'],['calendar','Calendario'],['standings','Classifiche'],['finance','Finanze'],['data','Backup']];$('nav').innerHTML=pages.map(([id,name],i)=>`<button data-page="${id}" class="${i===0?'active':''}">${name}</button>`).join('');$('nav').onclick=e=>{const b=e.target.closest('[data-page]');if(!b)return;document.querySelectorAll('section').forEach(s=>s.classList.toggle('active',s.id===b.dataset.page));document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x===b))};$('home').classList.add('active');
 const tracks=['Autodrome Lago Maggiore — GP','Autodrome Lago Maggiore — Est','Autodrome Lago Maggiore — Ovest','Autodrome Lago Maggiore — Centro','Brands Hatch — GP','Brands Hatch — Indy','Circuit de Barcelona-Catalunya — GP','Circuit de la Sarthe — 24h','Circuit de Spa-Francorchamps','Daytona International Speedway — Road Course','Daytona International Speedway — Tri-Oval','Deep Forest Raceway','Dragon Trail — Seaside','Dragon Trail — Gardens','Fuji International Speedway','Goodwood Motor Circuit','Grand Valley — Highway 1','High Speed Ring','Kyoto Driving Park — Yamagiwa','Kyoto Driving Park — Miyabi','Mount Panorama Motor Racing Circuit','Nürburgring — GP','Nürburgring — Nordschleife','Red Bull Ring','Road Atlanta','Sardegna — Road Track A','Sardegna — Road Track B','Sardegna — Road Track C','Suzuka Circuit','Tokyo Expressway — Centrale','Tokyo Expressway — Est','Tokyo Expressway — Sud','Trial Mountain Circuit','Tsukuba Circuit','Watkins Glen — Long Course','Watkins Glen — Short Course','WeatherTech Raceway Laguna Seca','Willow Springs — Big Willow','Autopolis International Racing Course','Alsace — Village','Blue Moon Bay Speedway','Broad Bean Raceway','Circuit de Sainte-Croix — A','Circuit de Sainte-Croix — B','Circuit de Sainte-Croix — C','Colorado Springs — Lake','Fishermans Ranch','Lake Louise — Long Track','Northern Isle Speedway','Sardegna — Windmills','Special Stage Route X','Altro…'];
 const venues={
 'GT7':tracks.filter(t=>t!=='Altro…'),
@@ -262,7 +284,7 @@ if(document.getElementById('accDlc'))document.getElementById('accDlc').value='al
 function migrate12(){ensure11();const c=contract10();if(!c||c.season12||!c.championshipId)return;
  const t=market11Teams.find(x=>x.id===c.teamId)||teams10.find(x=>x.id===c.teamId);
  for(const plan of allSeason12(c.championshipId)){plan.contract10Id=plan.contract10Id||c.id;if(plan.status!=='Disputato'&&t?.car){plan.car=t.car;plan.team12Id=t.id}}
- c.season12=true;localStorage.setItem(KEY,JSON.stringify(state));
+ c.season12=true;mcCloudLocalSave(JSON.stringify(state));
 }
 migrate12();
 // Race Briefing e Home utilizzano la vettura effettivamente associata al contratto.
@@ -463,7 +485,7 @@ const oldGoPage=goToPage;goToPage=function(id){oldGoPage(id);const b=navRoot.que
     state={...empty(),...incoming};
     state.championships=state.championships||{};state.ledger=Array.isArray(state.ledger)?state.ledger:[];
     state.settings=state.settings||{startingFunds:25000};ensure11();rcEnsure();
-    localStorage.setItem(KEY,JSON.stringify(state));render();
+    mcCloudLocalSave(JSON.stringify(state));render();
     alert('Backup importato. Contratti, mercato, Paddock e risultati conservati.');
    }
   }catch(ex){alert('Backup non valido: '+ex.message)}finally{e.target.value=''}
@@ -666,7 +688,7 @@ function career21BudgetHTML(p,r){const b=career21Budget(p,r);return '<div class=
 function career21OperatingCharge(r,p){const ref='career21-ops-'+r.id;if(state.ledger.some(x=>x.ref===ref))return;const b=career21Budget(p,r);r.career21Operating={...b,ref};if(b.total)addTransaction('Weekend · carburante, gomme'+(b.mechanic?', meccanico':'')+' · '+r.event,-b.total,ref);}
 function career21Custom(t){return !!t&& !/^acc\d|^british|^igtc|^gt2|^f12|^f2/.test(t.id)&&!String(t.rules||'').includes('Modalità Campionato ACC')}
 function career21Season(t,pace){const rounds=t.rounds.slice();if(!career21Custom(t))return rounds;const target=pace==='short'?Math.min(3,rounds.length):pace==='real'?Math.max(8,rounds.length):rounds.length;return Array.from({length:target},(_,i)=>rounds[i%rounds.length])}
-function career21WithSeason(id,fn){const t=templates.find(x=>x.id===id);if(!t||!career21Custom(t))return fn();const pace=career21Ensure(),original=t.rounds,fee=t.fee;const rounds=career21Season(t,pace);t.rounds=rounds;t.fee=Math.round(fee*rounds.length/original.length);const before=new Set(state.plans.map(p=>p.id));try{return fn()}finally{state.plans.filter(p=>!before.has(p.id)&&p.templateId===id).forEach(p=>{p.career21Pace=pace;p.career21SeasonLength=rounds.length});t.rounds=original;t.fee=fee;if(state.plans.some(p=>!before.has(p.id)&&p.templateId===id))localStorage.setItem(KEY,JSON.stringify(state));}}
+function career21WithSeason(id,fn){const t=templates.find(x=>x.id===id);if(!t||!career21Custom(t))return fn();const pace=career21Ensure(),original=t.rounds,fee=t.fee;const rounds=career21Season(t,pace);t.rounds=rounds;t.fee=Math.round(fee*rounds.length/original.length);const before=new Set(state.plans.map(p=>p.id));try{return fn()}finally{state.plans.filter(p=>!before.has(p.id)&&p.templateId===id).forEach(p=>{p.career21Pace=pace;p.career21SeasonLength=rounds.length});t.rounds=original;t.fee=fee;if(state.plans.some(p=>!before.has(p.id)&&p.templateId===id))mcCloudLocalSave(JSON.stringify(state));}}
 const career21IndependentBase=enrollIndependent13;
 enrollIndependent13=function(id){return career21WithSeason(id,()=>career21IndependentBase(id))};
 const career21SignBase=market11Sign;
@@ -870,7 +892,7 @@ $('saveprofile').onclick=function(){const nation=state.profile?.nationality,num=
 const profile224=document.createElement('div');profile224.className='card';profile224.innerHTML='<h3>Identità sportiva</h3><p id="driver224Summary" class="helper"></p><button id="driver224Edit">Modifica nome, nazionalità e numero</button>';$('profile').appendChild(profile224);$('driver224Edit').onclick=driver224Open;
 // The registration gate blocks actions until the identity is completed, including direct navigation.
 // Existing profiles with a name but no number are prompted once, without deleting progress.
-if(kart224Plans().length&&!state.road18?.kartTarget){const x=road18Ensure();x.kartTarget=kart224Plans().length;x.kartRequired=kart224Plans().length;x.kartPace=career21Ensure();localStorage.setItem(KEY,JSON.stringify(state));}
+if(kart224Plans().length&&!state.road18?.kartTarget){const x=road18Ensure();x.kartTarget=kart224Plans().length;x.kartRequired=kart224Plans().length;x.kartPace=career21Ensure();mcCloudLocalSave(JSON.stringify(state));}
 render();driver224Update();
 
 // v2.3 — reputation breakdown and sponsorship requirements.
@@ -903,7 +925,7 @@ function rwPlan(){return state.plans.find(p=>p.id===window.pendingPlanId)||null}
 function rwKey(){return rwPlan()?.id||'free-draft'}
 function rwCompletedRace(p){return p?state.races.find(r=>r.planId===p.id)||null:null}
 function rwStateFor(key){const w=rwStore();if(!w[key]||typeof w[key]!=='object')w[key]={phase:'brief',practice:'skip',practiceMin:0,qualStatus:'skip',strategy:'safe',notes:''};return w[key]}
-function rwPersist(){localStorage.setItem(KEY,JSON.stringify(state))}
+function rwPersist(){mcCloudLocalSave(JSON.stringify(state))}
 function rwCurrent(){return rwStateFor(rwKey())}
 function rwPrepareRead(){return {practice:$('rwPractice').value,practiceMin:Math.max(0,Math.min(240,Number($('rwMinutes').value)||0)),qualStatus:$('rwQual').value,strategy:$('rwStrategy').value,notes:$('rwNotes').value.trim()}}
 function rwLoadInputs(w){$('rwPractice').value=w.practice||'skip';$('rwMinutes').value=w.practiceMin||0;$('rwQual').value=w.qualStatus||'skip';$('rwStrategy').value=w.strategy||'safe';$('rwNotes').value=w.notes||''}
@@ -1078,7 +1100,7 @@ road18Sell=function(id){
  if(existed&&!road18CarOwned(id)){
   const d=v28Data();d.retired=Array.isArray(d.retired)?d.retired:[];
   if(old){d.retired.push({...old,retiredAt:new Date().toISOString(),saleId:crypto.randomUUID()});delete d.vehicles['owned:'+id];}
-  localStorage.setItem(KEY,JSON.stringify(state));render();
+  mcCloudLocalSave(JSON.stringify(state));render();
  }
 };
 const v302PurchaseBase=road18Purchase;
@@ -1088,7 +1110,7 @@ road18Purchase=function(id){
   const d=v28Data();delete d.vehicles['owned:'+id];
   const car=road18Ensure().garage.find(c=>c.id===id);
   if(car){car.instanceId=crypto.randomUUID();v28Record({id:'owned:'+id,name:car.name,owner:'driver',category:id==='kart'?'kart':String(car.category||'club').toLowerCase()});}
-  localStorage.setItem(KEY,JSON.stringify(state));render();
+  mcCloudLocalSave(JSON.stringify(state));render();
  }
 };
 function v28Garage(){
@@ -1327,7 +1349,7 @@ const oldSave=save;save=function(){const y=data29().year;for(const p of state.pl
  const venues30=[[/spa|francorchamps/i,50.437,5.972],[/tsukuba/i,36.151,140.275],[/brands hatch/i,51.356,0.263],[/suzuka/i,34.843,136.541],[/monza/i,45.620,9.282],[/fuji/i,35.372,138.927],[/red bull ring|spielberg/i,47.219,14.765],[/nürburgring|nurburgring/i,50.335,6.947],[/silverstone/i,52.073,-1.015],[/le mans|sarthe/i,47.95,0.207],[/mount panorama|bathurst/i,-33.447,149.557],[/watkins glen/i,42.336,-76.927],[/daytona/i,29.185,-81.070],[/laguna seca/i,36.584,-121.754],[/barcelona/i,41.57,2.26],[/imola/i,44.343,11.715],[/misano/i,43.962,12.685],[/zandvoort/i,52.388,4.54],[/road atlanta/i,34.15,-83.81]];
  async function forecast30(p){const target=q('realism30ForecastResult');if(!target)return;const date=String(p.date||'').slice(0,10),today=new Date();today.setHours(0,0,0,0);const when=new Date(date+'T12:00:00');const delta=Math.round((when-today)/86400000);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(delta)||delta<0||delta>15){target.textContent=L('Imposta una data da oggi ai prossimi 15 giorni. Oltre questo intervallo non esiste ancora una previsione affidabile.','Set a date between today and the next 15 days. No reliable forecast exists beyond this window.');return;}
  const v=venues30.find(x=>x[0].test(p.track||''));if(!v){target.textContent=L('Circuito non mappato: nessuna previsione disponibile.','Track not mapped: forecast unavailable.');return;}
- target.textContent=L('Caricamento meteo reale…','Loading real weather…');try{const url='https://api.open-meteo.com/v1/forecast?latitude='+v[1]+'&longitude='+v[2]+'&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,weather_code&timezone=auto&forecast_days=16';const resp=await fetch(url,{cache:'no-store'});if(!resp.ok)throw Error('HTTP '+resp.status);const obj=await resp.json(),i=obj.daily.time.indexOf(date);if(i<0)throw Error('Date unavailable');const code=obj.daily.weather_code[i],label=code<=1?L('Sereno','Clear'):code<=3?L('Nuvoloso','Cloudy'):code<=48?L('Nebbia','Fog'):code<=67?L('Pioggia','Rain'):code<=77?L('Neve','Snow'):L('Rovesci / temporali','Showers / storms');const summary=date+' · '+label+' · '+obj.daily.temperature_2m_min[i]+'–'+obj.daily.temperature_2m_max[i]+' °C · '+L('Probabilità precipitazioni','Precipitation probability')+' '+obj.daily.precipitation_probability_max[i]+'% · '+obj.daily.precipitation_sum[i]+' mm';d30().weather[p.id]={date,summary,fetchedAt:new Date().toISOString()};target.textContent=summary+' · Open-Meteo';localStorage.setItem(KEY,JSON.stringify(state));}catch(err){target.textContent=L('Previsione non disponibile: verifica la connessione HTTPS.','Forecast unavailable: check your HTTPS connection.')+' ('+err.message+')';}}
+ target.textContent=L('Caricamento meteo reale…','Loading real weather…');try{const url='https://api.open-meteo.com/v1/forecast?latitude='+v[1]+'&longitude='+v[2]+'&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,weather_code&timezone=auto&forecast_days=16';const resp=await fetch(url,{cache:'no-store'});if(!resp.ok)throw Error('HTTP '+resp.status);const obj=await resp.json(),i=obj.daily.time.indexOf(date);if(i<0)throw Error('Date unavailable');const code=obj.daily.weather_code[i],label=code<=1?L('Sereno','Clear'):code<=3?L('Nuvoloso','Cloudy'):code<=48?L('Nebbia','Fog'):code<=67?L('Pioggia','Rain'):code<=77?L('Neve','Snow'):L('Rovesci / temporali','Showers / storms');const summary=date+' · '+label+' · '+obj.daily.temperature_2m_min[i]+'–'+obj.daily.temperature_2m_max[i]+' °C · '+L('Probabilità precipitazioni','Precipitation probability')+' '+obj.daily.precipitation_probability_max[i]+'% · '+obj.daily.precipitation_sum[i]+' mm';d30().weather[p.id]={date,summary,fetchedAt:new Date().toISOString()};target.textContent=summary+' · Open-Meteo';mcCloudLocalSave(JSON.stringify(state));}catch(err){target.textContent=L('Previsione non disponibile: verifica la connessione HTTPS.','Forecast unavailable: check your HTTPS connection.')+' ('+err.message+')';}}
  // Delegated actions survive DOM regeneration.
  document.addEventListener('click',e=>{const b=e.target.closest('[data-buy30],[data-renew30]');if(!b)return;if(b.dataset.buy30)purchase30(b.dataset.buy30);if(b.dataset.renew30)renew30(b.dataset.renew30)});
  const render30Base=render;render=function(){render30Base();render30()};
@@ -1662,4 +1684,7 @@ const oldSave=save;save=function(){const y=data29().year;for(const p of state.pl
   if(current.driver===name&&Number(current.raceNumber)===number){localStorage.setItem('mc-onboarding-298','completed');root.hidden=true;root.remove();const button=document.querySelector('#language296 [data-lang="'+lang+'"]');if(button)button.click();}
  });
 })();
-</script></body></html>
+</script>
+
+<script type="module" src="./cloud.js"></script>
+</body></html>
