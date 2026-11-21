@@ -94,7 +94,7 @@ function renderTemplates(){const filter=$('templateFilter').value;$('templates')
 $('templateFilter').onchange=renderTemplates;$('accDlc').onchange=renderTemplates;
 $('templates').onclick=e=>{const b=e.target.closest('[data-template]');if(!b)return;const t=templates.find(x=>x.id===b.dataset.template);if(!t||eligibility(t).length)return;if(state.plans.some(p=>p.templateId===t.id))return alert('Questo campionato è già nel calendario.');if(!confirm('Iscrivere il pilota a '+t.title+' per Cr. '+(t.fee||0)+' e aggiungere '+t.rounds.length+' round?'))return;addTransaction('Iscrizione · '+t.title,-Number(t.fee||0),t.id);createChampionship(t);t.rounds.forEach((track,i)=>state.plans.push({id:crypto.randomUUID(),date:'',event:t.title+' — Round '+(i+1),game:t.game,track,car:t.car,rules:t.rules,championship:t.title,templateId:t.id,round:i+1,requirement:roundRequirement(t,track,i),ai:t.game==='GT7'?'Sophy se disponibile sul circuito; altrimenti IA standard':t.game==='ACC'?'IA ACC calibrata':t.game.startsWith('F1')?'IA F1 calibrata':'Avversari WRC',status:'Da disputare'}));save()};
 function recordPlanned(index){const p=state.plans[index];if(!p)return;const missing=roundIssues(p);if(missing.length)return alert('Evento non ancora disponibile: '+missing.join(' · '));document.querySelector('[data-page="races"]').click();$('game').value=p.game;fillVenue('game','track','trackOther');$('track').value=(venues[p.game]||[]).includes(p.track)?p.track:'Altro…';$('trackOther').style.display=$('track').value==='Altro…'?'block':'none';if($('track').value==='Altro…')$('trackOther').value=p.track;$('event').value=p.event;$('car').value=p.car||'';window.pendingPlanId=p.id||null;window.pendingPlanIndex=index;}
-function goToPage(id){document.querySelectorAll('section').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===id));document.getElementById(id)?.scrollIntoView({block:'start',behavior:'smooth'})}
+function goToPage(id){if(document.getElementById(id))sessionStorage.setItem('mc-last-page-v318',id);document.querySelectorAll('section').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===id));document.getElementById(id)?.scrollIntoView({block:'start',behavior:'smooth'})}
 function svgLine(values,color){if(!values.length)return '';const w=460,h=126,pad=12,min=Math.min(...values),max=Math.max(...values),range=max-min||1;const pts=values.map((v,i)=>[pad+(w-2*pad)*(values.length===1?.5:i/(values.length-1)),h-pad-(v-min)/range*(h-2*pad)]);const path=pts.map(([x,y],i)=>(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)).join(' ');return `<svg class="hq-svg" viewBox="0 0 ${w} ${h+10}" role="img" aria-label="Grafico andamento"><path d="M12 12 H448 M12 63 H448 M12 114 H448" stroke="#414854" stroke-dasharray="4 6" fill="none"/><path d="${path}" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>${pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3" fill="${color}"/>`).join('')}</svg>`}
 function renderHQ(){const rank=['Nazionale B','Nazionale A','Internazionale B','Internazionale A','Superlicenza'];let highest=-1;rank.forEach((name,i)=>{if(licenseReady(name))highest=i});const medalClass={'Bronzo':'lic-bronze','Argento':'lic-silver','Oro':'lic-gold'};const medal=highest>=0?state.licences[rank[highest]]:null;const badge=$('licenseBadge');badge.innerHTML=`<div class="license-card ${medalClass[medal]||''}"><small>GT7 · PATENTE PILOTA</small><strong>${highest>=0?esc(rank[highest]):'Non registrata'}</strong><small>${highest>=0?esc(state.licences[rank[highest]]):'Apri Patenti per inserirla'}</small></div>`;const remaining=state.plans.filter(p=>p.status!=='Disputato');const agenda=$('homeAgenda');agenda.innerHTML=remaining.length?remaining.slice(0,4).map((p,i)=>`<div class="agenda-item ${i===0?'hq-next':''}"><small>${i===0?'PROSSIMO EVENTO':'IN PROGRAMMA'} · ${esc(p.game||'—')} ${p.round?'· ROUND '+esc(p.round):''}</small><strong>${esc(p.event||'Evento')}</strong><div class="helper">${esc(p.track||'Circuito da definire')} · ${esc(p.car||'Vettura libera')}</div><div class="helper">${esc(p.date||'Senza scadenza')} · ${roundIssues(p).length?'🔒 Requisito Academy mancante':'Pronto per il briefing'}</div>${i===0?'<button class="smallbutton primary hq-btn" id="goAgenda">Apri calendario</button>':''}</div>`).join(''):'<div class="home-empty">Nessun evento in programma. Aggiungi un evento o scegli un campionato dal Calendario.</div>';$('goAgenda')?.addEventListener('click',()=>goToPage('calendar'));const ledger=state.ledger||[];let running=Number(state.settings.startingFunds??25000);const points=[running];ledger.forEach(x=>{running+=Number(x.amount||0);points.push(running)});const income=ledger.reduce((a,x)=>a+Math.max(0,Number(x.amount||0)),0);const costs=ledger.reduce((a,x)=>a+Math.max(0,-Number(x.amount||0)),0);$('homeWallet').innerHTML=`<div class="wallet-total">Cr. ${balance().toLocaleString('it-IT')}</div><div class="hq-legend"><span>Entrate <b>+${income.toLocaleString('it-IT')}</b></span><span>Uscite <b>−${costs.toLocaleString('it-IT')}</b></span></div>`;$('walletChart').innerHTML=ledger.length?svgLine(points,'#e66a74')+'<div class="chart-note">Saldo dopo ogni movimento</div>':'<div class="home-empty" style="margin-top:12px">Il grafico apparirà quando registrerai la prima transazione.</div>';$('recentTransactions').innerHTML=ledger.length?'<h3 style="font-size:14px">Ultimi movimenti</h3>'+ledger.slice(-3).reverse().map(x=>`<div class="money-row"><span>${esc(x.label)}</span><span style="color:${Number(x.amount)>=0?'#a7dfc8':'#f4a0a5'}">${Number(x.amount)>0?'+':''}${Number(x.amount).toLocaleString('it-IT')}</span></div>`).join(''):'';const classifiedRaces=state.races.filter(r=>r.outcome==='Classificato'&&Number(r.finish)>0);$('resultsChart').innerHTML=classifiedRaces.length?svgLine(classifiedRaces.map(r=>Number(r.finish)),'#87b7e7')+`<div class="chart-note">Posizione d'arrivo nelle ultime ${classifiedRaces.length} gare classificate (più basso = migliore).</div>`:'<div class="home-empty">Registra una gara classificata per vedere il trend dei piazzamenti.</div>'}
 
@@ -651,7 +651,7 @@ function career20Arrange(){
  const garage=cards.find(el=>el.querySelector('[data-road-buy]'));
  const mechanic=cards.find(el=>el.querySelector('[data-road-mech]'));const tuning=cards.find(el=>el.querySelector('#road18Tune')||el.textContent.includes('Nessun round con tuning consentito')); 
  const manager=cards.find(el=>el.querySelector('[data-road-manager]'));
- if(kart)$('career20-kart').replaceChildren(kart);
+ if(kart){const kartHost=$('career20-kart');const kartRegulations=kartHost.querySelector('#kart317-academy');kartHost.replaceChildren(kart);if(kartRegulations)kartHost.appendChild(kartRegulations);}
  if(garage)garagePanel20.appendChild(garage);
  if(mechanic)garagePanel20.appendChild(mechanic);if(tuning)garagePanel20.appendChild(tuning);
  if(manager)managementPanel20.insertBefore(manager,sponsorBox20);
@@ -1897,6 +1897,25 @@ const oldSave=save;save=function(){const y=data29().year;for(const p of state.pl
  const watch=document.getElementById('rwBriefStage');
  if(watch)new MutationObserver(()=>queueMicrotask(update)).observe(watch,{attributes:true,attributeFilter:['hidden']});
  update();
+})();
+</script>
+<script id="kart318-navigation-fix">
+(function(){
+ const key='mc-last-page-v318';
+ document.addEventListener('click',function(event){
+   const nav=event.target.closest('[data-page]');
+   if(nav && document.getElementById(nav.dataset.page))sessionStorage.setItem(key,nav.dataset.page);
+   const kart=event.target.closest('#career20GoKart');
+   if(kart)sessionStorage.setItem(key,'academyKart20');
+ },true);
+ const restore=()=>{
+   const id=sessionStorage.getItem(key);
+   const target=id&&document.getElementById(id);
+   if(!target)return;
+   document.querySelectorAll('section').forEach(x=>x.classList.toggle('active',x.id===id));
+   document.querySelectorAll('#nav [data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===id));
+ };
+ window.addEventListener('load',restore,{once:true});
 })();
 </script>
 <script type="module" src="./cloud.js"></script>
