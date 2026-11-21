@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.2.2</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.2.3</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -885,6 +885,7 @@ function kartReg315For(p){
  }
  return p.raceRegulations;
 }
+window.kartReg315For = kartReg315For;
 function kartReg315Edit(planId){
  const plan=state.plans.find(p=>p.id===planId&&p.road18Kart);
  if(!plan)return;
@@ -1819,7 +1820,7 @@ function presetK(p){
  return mode==='short'?(i===0?'Beginner':'Intermediate'):mode==='real'?(i<2?'Intermediate':'Professional'):(i<3?'Intermediate':'Professional');
 }
 function configK(p){
- const r=kartReg315For(p);
+ const r=window.kartReg315For(p);
  const difficulty=levels.includes(r.aiDifficulty)?r.aiDifficulty:levels.includes(r.ai)?r.ai:presetK(p);
  const gridSize=Number.isInteger(Number(r.gridSize))&&Number(r.gridSize)>=2&&Number(r.gridSize)<=40?Number(r.gridSize):20;
  const suggested={Beginner:8,Intermediate:12,Professional:20}[difficulty];
