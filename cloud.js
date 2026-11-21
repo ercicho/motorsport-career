@@ -226,7 +226,8 @@ function schedule() {
 }
 window.addEventListener('mc-career-changed', schedule);
 window.addEventListener('online', () => {
-  if (!shouldSyncOnReconnect({online:navigator.onLine, authenticated:!!user, pendingLocalChanges:!!user && valid(local()) && local() !== localStorage.getItem(syncedSnapshotKey())})) return;\n  if (syncEnabled) sync();
+  if (!shouldSyncOnReconnect({online:navigator.onLine, authenticated:!!user, pendingLocalChanges:!!user && valid(local()) && local() !== localStorage.getItem(syncedSnapshotKey())})) return;
+  if (syncEnabled) sync();
 });
 window.addEventListener('offline', () => { if (user) status('Offline · local save preserved; waiting for connection.', true); });
 
