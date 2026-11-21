@@ -1,0 +1,26 @@
+# Cloud v3.1.4 — Firebase synchronization fix
+
+- Debounce local career changes and attempt automatic synchronization 1.5 seconds after the last edit.
+- Keep local saving independent from network availability; resume pending local changes after reconnect.
+- Make Sync now available whenever authenticated, even when automatic sync has been paused by a previous state; report progress, offline state, and conflicts.
+- Compare local, cloud, and last-synchronized snapshots to distinguish one-sided changes from incompatible edits.
+- Use Firestore revisions as optimistic concurrency guards inside transactions. A stale revision aborts the write and triggers a fresh comparison.
+- Never silently replace either copy when both devices changed independently. Require an explicit local-upload or cloud-restore choice.
+- Preserve the existing localStorage career key, existing Firestore document shape, and legacy saves.
+
+## Verification
+
+Run the pure synchronization tests with:
+
+```sh
+node --test cloud-sync-core.test.mjs
+```
+
+Coverage includes unchanged saves, local-only and remote-only edits, identical concurrent edits, divergent conflicts, first-time/legacy saves, revision drift, missing cloud documents, offline state, and reconnect behavior.
+
+Manual integration checks still required against the configured Firebase project:
+- iPhone local edit followed by 1.5-second debounce and cloud revision increment.
+- Two devices editing independently; verify conflict prompt and no overwrite.
+- Sync now while offline and while conflict is pending.
+- Reconnect after offline local edits and verify safe synchronization.
+- Restore legacy local and Firestore saves without changing career behavior.
