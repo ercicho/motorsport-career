@@ -2,7 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
-import { classifySync, shouldSyncOnReconnect } from './cloud-sync-core.js';
+import { classifySync, shouldSyncOnReconnect } from './cloud-sync-core.mjs';
 
 const config = {
   apiKey: 'AIzaSyDpZnxIS4iDB-IbmlrAum7KMTEq1B5192A',
