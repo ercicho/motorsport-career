@@ -1,0 +1,13 @@
+Motorsport Career v3.2.0 - aggiornamento sperimentale
+
+Modifiche:
+- Kart Academy: contatore sessioni completate/mancanti, elenco e barra di avanzamento.
+- Kart Academy: qualifiche non previste; partenza suggerita automaticamente dalla difficolta AI.
+- Durata carriera: Breve/Standard/Realistica influenzano ora reputazione e valutazione sportiva, senza nuovi controlli.
+- Nessuna modifica ai salvataggi cloud e al catalogo vetture.
+
+Limiti:
+- I nomi dei piloti AI standard/Sophy non sono stati verificati e quindi non sono stati aggiunti.
+- Race Weekend e navigazione sono conservati dal sorgente originale; non e' stata eseguita una prova completa nel browser.
+
+Installazione: caricare i file della cartella nella radice del repository GitHub mantenendo i nomi. Eseguire un backup dei dati carriera prima della sostituzione.

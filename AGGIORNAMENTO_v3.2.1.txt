@@ -1,0 +1,9 @@
+Motorsport Career v3.2.1 - build per test unico
+- Mantiene le modifiche Kart Academy e progressione della v3.2.0.
+- Sostituisce i nomi inventati dei rivali nei NUOVI campionati GT7 con nomi di avversari presenti in GT7.
+- I campionati gia' creati mantengono i propri roster per non alterare i salvataggi e i risultati.
+- GT Sophy e' un agente IA, non un pilota con nome e cognome. La disponibilita' varia per piattaforma, circuito e configurazione.
+- Aggiunge un riepilogo persistente delle informazioni nel briefing Race Weekend.
+- Nessun nuovo pulsante per la difficolta' della carriera.
+- Controlli: sintassi JS valida; 9 test cloud superati. Test manuale browser ancora necessario.
+Installazione: salvare backup carriera, copiare contenuto della cartella nella radice del repository GitHub e attendere GitHub Pages.
