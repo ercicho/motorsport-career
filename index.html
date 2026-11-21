@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.2.5</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.2.6</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -685,6 +685,7 @@ window.career21OperatingEnabled=true;
 const career21Rates={kart:[50,100],club:[120,250],touring:[200,400],gt4:[200,400],gt3:[600,1200],gr2:[800,1600],gr1:[1000,2000],formula:[700,1400],rally:[220,420]};
 const career21Modes={short:{name:'Breve',factor:.6,experience:1.5},standard:{name:'Standard',factor:1,experience:1},real:{name:'Realistica',factor:1,experience:1}};
 function career21Ensure(){state.settings=state.settings||{};if(!career21Modes[state.settings.careerPace])state.settings.careerPace='standard';return state.settings.careerPace}
+window.career21Ensure = career21Ensure;
 function career21Class(p,r){const game=p?.game||r?.game||'GT7';const text=((p?.event||r?.event||'')+' '+(p?.car||r?.car||'')+' '+(p?.templateId||'')).toLowerCase();if(p?.road18Kart||r?.road18Kart||/karting|racing kart|125 shifter/.test(text))return 'kart';if(game.startsWith('F1'))return 'formula';if(game==='WRC')return 'rally';if(/gr\.?1|prototype|gr1endurance22/.test(text))return 'gr1';if(/gr\.?2|gr2elite22/.test(text))return 'gr2';if(/gr\.?4|gr4development22|gt4/.test(text))return 'gt4';if(game==='ACC'||/gr\.3|gt3|gt performance|international gt/.test(text))return 'gt3';if(/touring|gr86|gr 86/.test(text))return 'touring';return 'club'}
 function career21Budget(p,r){const cls=career21Class(p,r),[fuel,tyres]=career21Rates[cls];const team=state.career10?.active;const supported=!!(p&&team&&p.contract10Id===team.id&&team.teamId!=='privateer');const mechanic=road18Ensure().mechanic;const mechCost=road18KartDone()&&cls!=='kart'&&(p?.game||r?.game)==='GT7'&&mechanic&&!supported?Number(mechanic.fee||0):0;const enduranceCover=supported&&team?.endurance27?Number(team.cover??0):null;const base=fuel+tyres+mechCost;return {cls,fuel,tyres,mechanic:mechCost,covered:supported,coverPercent:enduranceCover,total:enduranceCover!==null?Math.round(base*(1-enduranceCover)):supported?0:base};}
 function career21BudgetHTML(p,r){const b=career21Budget(p,r);return '<div class="career21-budget"><strong>Preventivo weekend · '+esc(b.cls.toUpperCase())+'</strong><div class="helper">Carburante: '+b.fuel+' Cr. · Gomme: '+b.tyres+' Cr.'+(b.mechanic?' · Meccanico: '+b.mechanic+' Cr.':'')+'</div><div class="helper">'+(b.coverPercent!==null?'Copertura team: '+Math.round(b.coverPercent*100)+'% · A carico del pilota: <b>'+b.total+' Cr.</b>':b.covered?'Costi operativi coperti dal team (modello narrativo).':'A carico del pilota: <b>'+b.total+' Cr.</b>')+'</div></div>'}
@@ -1825,7 +1826,7 @@ function sophyTrackK(track){return sophyTracksK.some(t=>t.toLowerCase()===String
 function sophyStatusK(p){return sophyTrackK(p.track)?'Circuito compatibile con Sophy; verifica in GT7 la disponibilità per questo kart e le impostazioni della gara.':'Sophy non confermata su questo layout: usa Regular AI.';}
 function configK(p){
  const r=window.kartReg315For(p);
- const realistic=career21Ensure()==='real' && p.status!=='Disputato';
+ const realistic=window.career21Ensure()==='real' && p.status!=='Disputato';
  const difficulty=realistic?'Professional':levels.includes(r.aiDifficulty)?r.aiDifficulty:levels.includes(r.ai)?r.ai:presetK(p);
  const gridSize=realistic?20:Number.isInteger(Number(r.gridSize))&&Number(r.gridSize)>=2&&Number(r.gridSize)<=40?Number(r.gridSize):20;
  const suggested={Beginner:8,Intermediate:12,Professional:20}[difficulty];
