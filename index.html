@@ -864,9 +864,91 @@ road18KartStart=function(){
  const pace=career21Ensure(),mode=kart224Modes[pace]||kart224Modes.standard;
  if(!confirm('Pianificare '+mode.count+' sessioni Karting Academy in modalità '+career21Modes[pace].name+'? Il ritmo rimarrà bloccato durante il percorso.'))return;
  const x=road18Ensure();x.kartTarget=mode.count;x.kartRequired=mode.required;x.kartPace=pace;
- for(let i=0;i<mode.count;i++)state.plans.push({id:crypto.randomUUID(),event:'Karting Academy · Sessione '+(i+1),game:'GT7',track:kart224Tracks[i],car:road18Cars[0].name,road18CarId:'kart',road18Kart:true,road18Practice:true,kart224Index:i+1,rules:'Karting Academy · '+(i<2?'adattamento e guida pulita':i<4?'controllo e costanza':'gara e gestione del traffico')+' · modalità compatibile da verificare in GT7',ai:'Configurazione disponibile nel gioco; nessuna IA garantita',status:'Da disputare',date:''});
+ for(let i=0;i<mode.count;i++)state.plans.push({id:crypto.randomUUID(),event:'Karting Academy · Sessione '+(i+1),game:'GT7',track:kart224Tracks[i],car:road18Cars[0].name,road18CarId:'kart',road18Kart:true,road18Practice:true,kart224Index:i+1,raceRegulations:kartReg315Defaults(pace,i),rules:kartReg315Summary(kartReg315Defaults(pace,i)),ai:'Configurazione disponibile nel gioco; nessuna IA garantita',status:'Da disputare',date:''});
  save();goToPage('calendar');
 };
+// Karting Academy regulations v3.1.5: suggestions, not guaranteed GT7 settings.
+function kartReg315Defaults(pace, index) {
+ const config={short:{laps:[5,6,7],practice:5,qualifying:0},standard:{laps:[10,12,14,15,16],practice:10,qualifying:5},real:{laps:[15,16,18,20,21,22,24,25],practice:15,qualifying:10}}[pace]||{laps:[10,12,14,15,16],practice:10,qualifying:5};
+ return {laps:config.laps[Math.min(index,config.laps.length-1)],practiceMinutes:config.practice,qualifyingMinutes:config.qualifying,damage:pace==='short'?'Off':'Light',tyreWear:'1x',fuelUse:'1x',penalties:true,start:'Standing',weather:'Default',ai:'Custom',notes:''};
+}
+function kartReg315Summary(r){
+ return 'Karting Academy · '+r.laps+' giri · prove '+r.practiceMinutes+' min · qualifiche '+r.qualifyingMinutes+' min · danni '+r.damage+' · gomme '+r.tyreWear+' · carburante '+r.fuelUse+' · penalità '+(r.penalties?'on':'off')+' · partenza '+r.start+' · meteo '+r.weather+' · IA '+r.ai+(r.notes?' · '+r.notes:'')+' · impostazioni suggerite: verificare disponibilità in GT7';
+}
+function kartReg315For(p){
+ if(!p.raceRegulations){
+  const mode=state.road18?.kartPace||career21Ensure();
+  return kartReg315Defaults(mode,Math.max(0,(Number(p.kart224Index)||1)-1));
+ }
+ return p.raceRegulations;
+}
+function kartReg315Edit(planId){
+ const plan=state.plans.find(p=>p.id===planId&&p.road18Kart);
+ if(!plan)return;
+ if(plan.status==='Disputato')return alert('Sessione già disputata: il regolamento storico non può essere modificato.');
+ const current=kartReg315For(plan);
+ const fields=[['laps','Giri',1,200],['practiceMinutes','Prove libere (minuti)',0,120],['qualifyingMinutes','Qualifiche (minuti)',0,120]];
+ const updated={...current};
+ for(const [key,label,min,max] of fields){
+  const response=prompt(label+' ('+min+'-'+max+')',String(current[key]));
+  if(response===null)return;
+  const number=Number(response.trim());
+  if(!Number.isInteger(number)||number<min||number>max){alert('Valore non valido: '+label);return;}
+  updated[key]=number;
+ }
+ for(const [key,label,options] of [
+  ['damage','Danni meccanici',['Off','Light','Heavy']],
+  ['tyreWear','Usura gomme',['Off','1x','2x','3x','5x']],
+  ['fuelUse','Consumo carburante',['Off','1x','2x','3x','5x']],
+  ['start','Tipo partenza',['Standing','Rolling']],
+  ['weather','Meteo',['Default','Clear','Variable']],
+  ['ai','IA',['Custom','Easy','Normal','Hard','No AI']]
+ ]){
+  const response=prompt(label+' — '+options.join(' / '),current[key]);
+  if(response===null)return;
+  const selected=options.find(x=>x.toLowerCase()===response.trim().toLowerCase());
+  if(!selected){alert('Opzione non valida: '+label);return;}
+  updated[key]=selected;
+ }
+ const penalty=confirm('Penalità attive? OK = sì, Annulla = no');
+ updated.penalties=penalty;
+ const note=prompt('Note / limitazioni GT7 (facoltative)',current.notes||'');
+ if(note===null)return;
+ updated.notes=note.trim().slice(0,500);
+ plan.raceRegulations=updated;
+ plan.rules=kartReg315Summary(updated);
+ save();
+}
+// Event delegation survives the existing render() replacements and re-renders.
+document.addEventListener('click',event=>{
+ const button=event.target.closest('[data-kart-reg315]');
+ if(button){event.preventDefault();kartReg315Edit(button.dataset.kartReg315);}
+});
+const kartReg315RenderBase=render;
+render=function(){
+ kartReg315RenderBase();
+ const cards=$('plans');
+ if(!cards)return;
+ const plans=state.plans;
+ // The calendar renders one card per plan in the same order as state.plans.
+ const rendered=[...cards.children];
+ plans.forEach((plan,index)=>{
+  if(!plan.road18Kart||!rendered[index])return;
+  const card=rendered[index];
+  if(card.querySelector('[data-kart-reg315]'))return;
+  const r=kartReg315For(plan);
+  const info=document.createElement('div');
+  info.className='helper';
+  info.textContent='Race Briefing · '+kartReg315Summary(r);
+  card.appendChild(info);
+  if(plan.status!=='Disputato'){
+   const button=document.createElement('button');button.type='button';
+   button.className='smallbutton';button.dataset.kartReg315=plan.id;
+   button.textContent='Modifica regolamento kart';card.appendChild(button);
+  }
+ });
+};
+
 const kart224RaceBase=$('addRace').onclick;
 $('addRace').onclick=function(){const p=state.plans.find(p=>p.id===window.pendingPlanId);if(p?.road18Kart&&p.status==='Disputato')return alert('Questa sessione è già stata registrata.');return kart224RaceBase.call(this)};
 const kart224PaceBase=career223ActiveSeasons;
