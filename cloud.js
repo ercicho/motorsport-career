@@ -3,7 +3,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
-import { classifySync, shouldSyncOnReconnect } from './cloud-sync-core.mjs';
+import { classifySync, snapshotsEqual, shouldSyncOnReconnect } from './cloud-sync-core.mjs';
 
 const config = {
   apiKey: 'AIzaSyDpZnxIS4iDB-IbmlrAum7KMTEq1B5192A',
@@ -29,7 +29,7 @@ style.textContent = `#mc-cloud{position:fixed;right:12px;bottom:12px;z-index:999
 document.head.append(style);
 const panel = document.createElement('aside');
 panel.id = 'mc-cloud';
-panel.innerHTML = `<button type="button" id="mc-cloud-toggle" aria-expanded="false" aria-controls="mc-cloud-details" aria-label="Open cloud saves">☁ <span id="mc-cloud-indicator">✓</span></button><div id="mc-cloud-details" hidden><strong>Motorsport Career · Cloud v3.1.4</strong><div id="mc-cloud-user" class="mc-note">Connecting…</div><div id="mc-cloud-status" class="mc-note" role="status" aria-live="polite">Local career is preserved.</div><div class="mc-actions"><button id="mc-login">Google login</button><button id="mc-logout" hidden>Logout</button><button id="mc-sync" hidden>Sync now</button><button id="mc-download">Backup JSON</button></div><div id="mc-cloud-choice" hidden><p id="mc-cloud-choice-text"></p><button id="mc-use-local">Upload this device</button><button id="mc-use-cloud">Load cloud career</button></div></div>`;
+panel.innerHTML = `<button type="button" id="mc-cloud-toggle" aria-expanded="false" aria-controls="mc-cloud-details" aria-label="Open cloud saves">☁ <span id="mc-cloud-indicator">✓</span></button><div id="mc-cloud-details" hidden><strong>Motorsport Career · Cloud v3.1.5</strong><div id="mc-cloud-user" class="mc-note">Connecting…</div><div id="mc-cloud-status" class="mc-note" role="status" aria-live="polite">Local career is preserved.</div><div class="mc-actions"><button id="mc-login">Google login</button><button id="mc-logout" hidden>Logout</button><button id="mc-sync" hidden>Sync now</button><button id="mc-download">Backup JSON</button></div><div id="mc-cloud-choice" hidden><p id="mc-cloud-choice-text"></p><button id="mc-use-local">Upload this device</button><button id="mc-use-cloud">Load cloud career</button></div></div>`;
 document.body.append(panel);
 const cloudToggle = panel.querySelector('#mc-cloud-toggle');
 const cloudDetails = panel.querySelector('#mc-cloud-details');
@@ -48,7 +48,7 @@ const $ = id => document.getElementById(id);
 const status = (msg, error = false) => {
   $('mc-cloud-status').textContent = msg;
   $('mc-cloud-status').classList.toggle('mc-danger', error);
-  $('mc-cloud-indicator').textContent = error ? '!' : '✓';
+  $('mc-cloud-indicator').textContent = error ? '!' : (/syncing|checking|queued|waiting|pending|updated/i.test(msg) ? '…' : '✓');
   if (error) setCloudOpen(true);
 };
 const local = () => window.mcCloudRead?.() || null;
@@ -148,12 +148,14 @@ async function uploadLocal(expectedRevision, {replace = false} = {}) {
     if (currentRevision !== expectedRevision) throw new Error('REVISION_CHANGED');
     tx.set(ref(), {data: payload, revision: nextRevision, updatedAt: Date.now(), schemaVersion: 1});
   });
-  if (local() !== raw) {
-    status('A newer local edit was made during sync; it will be synchronized next.', false);
-    schedule();
+  // The cloud now contains `raw`, even if the user edited the device during upload.
+  // Record exactly the uploaded baseline; the next pass will upload the newer local data.
+  recordSynced(raw, nextRevision);
+  if (!snapshotsEqual(local(), raw)) {
+    rerunRequested = true;
+    status('Newer local changes pending · another sync is queued.');
     return;
   }
-  recordSynced(raw, nextRevision);
   cloudAvailable = true;
   lastRemoteRevision = nextRevision;
   setChoice(false);
@@ -220,6 +222,7 @@ async function sync(options = {}) {
 }
 function schedule() {
   if (!user || !syncEnabled) return;
+  if (busy) rerunRequested = true;
   clearTimeout(timer);
   status(navigator.onLine ? 'Local save updated · syncing in 1.5 seconds…' : 'Offline · local save preserved');
   timer = setTimeout(() => sync(), 1500);
