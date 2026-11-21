@@ -2,7 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
-import { classifySync } from './cloud-sync-core.js';
+import { classifySync, shouldSyncOnReconnect } from './cloud-sync-core.js';
 
 const config = {
   apiKey: 'AIzaSyDpZnxIS4iDB-IbmlrAum7KMTEq1B5192A',
@@ -224,7 +224,7 @@ function schedule() {
   timer = setTimeout(() => sync(), 1500);
 }
 window.addEventListener('mc-career-changed', schedule);
-window.addEventListener('online', () => { if (user && syncEnabled) sync(); });
+window.addEventListener('online', () => {\n  if (!shouldSyncOnReconnect({online:navigator.onLine, authenticated:!!user, pendingLocalChanges:!!user && !!local()})) return;\n  if (syncEnabled) sync();\n});
 window.addEventListener('offline', () => { if (user) status('Offline · local save preserved; waiting for connection.', true); });
 
 $('mc-use-local').onclick = async () => {
