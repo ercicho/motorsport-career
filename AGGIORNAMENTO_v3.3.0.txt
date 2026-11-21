@@ -1,0 +1,1 @@
+v3.3.0 - Charity Cup: notiziario, 20 posti, iscrizioni simulate a tempo, blocco gare fino al via. Le iscrizioni sono una simulazione locale basata sulla data del dispositivo, non su un server condiviso. Nessuna donazione reale.

@@ -1,0 +1,2 @@
+v3.2.7 - Evento promozionale Lancer Evolution Final Gr.4 Cup
+Aggiunto al catalogo GT7 un evento promozionale monomarca di un round a Deep Forest Raceway. Richiede patente Nazionale A e almeno 3 gare registrate. Nessuna promozione automatica. Il resto del progetto deriva dalla v3.2.6.
