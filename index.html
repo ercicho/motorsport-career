@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.3.4</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.3.5</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -888,6 +888,7 @@ render=function(){career223RenderBase();career223PacePanel()};
 
 // v2.2.4 — Driver Registration & Karting Progression
 const kart224Tracks=['Tsukuba Circuit','Brands Hatch Grand Prix Circuit','WeatherTech Raceway Laguna Seca','Red Bull Ring','Autódromo de Interlagos','Circuit de Spa-Francorchamps','Autodromo Nazionale Monza','Michelin Raceway Road Atlanta'];
+window.kart224Tracks=kart224Tracks;
 const kart224Modes={short:{count:3,required:2},standard:{count:5,required:4},real:{count:8,required:8}};
 function kart224Plans(){return state.plans.filter(p=>p.road18Kart)}
 function kart224Target(){const ps=kart224Plans();const stored=Number(state.road18?.kartTarget);return stored>0?stored:ps.length||kart224Modes[career21Ensure()]?.count||5}
@@ -913,6 +914,7 @@ function kartReg315Defaults(pace, index) {
 function kartReg315Summary(r){
  return 'Karting Academy · '+r.laps+' giri · prove '+r.practiceMinutes+' min · qualifiche non previste · danni '+r.damage+' · gomme '+r.tyreWear+' · carburante '+r.fuelUse+' · penalità '+(r.penalties?'on':'off')+' · partenza '+r.start+' · meteo '+r.weather+' · IA '+r.ai+(r.notes?' · '+r.notes:'')+' · impostazioni suggerite: verificare disponibilità in GT7';
 }
+window.kartReg315Summary=kartReg315Summary;
 function kartReg315For(p){
  if(!p.raceRegulations){
   const mode=state.road18?.kartPace||career21Ensure();
@@ -1906,9 +1908,9 @@ function updateK(){
  let changed=false;
  ps.forEach(p=>{if(p.status==='Disputato'||p.kart334Migrated)return;
   const i=Math.max(0,(Number(p.kart224Index)||ps.indexOf(p)+1)-1);
-  if(kart224Tracks[i] && p.track!==kart224Tracks[i]){p.track=kart224Tracks[i];changed=true;}
+  if(window.kart224Tracks?.[i] && p.track!==window.kart224Tracks[i]){p.track=window.kart224Tracks[i];changed=true;}
   p.raceRegulations={...window.kartReg315For(p),laps:15,tyreWear:'1x',fuelUse:'1x',qualifyingMinutes:0};
-  p.rules=kartReg315Summary(p.raceRegulations);p.kart334Migrated=true;changed=true;
+  p.rules=window.kartReg315Summary(p.raceRegulations);p.kart334Migrated=true;changed=true;
  });
  if(changed){window.mcCloudLocalSave(JSON.stringify(state));}
  // Sibling of career20-kart: survives career20Arrange().replaceChildren().
@@ -1928,7 +1930,7 @@ function updateK(){
 }
 const previousRender=render;render=function(...args){const result=previousRender.apply(this,args);updateK();return result;};
 if(typeof rwDisplay==='function'){const previousWeekend=rwDisplay;rwDisplay=function(...args){const result=previousWeekend.apply(this,args);updateK();return result;};}
-document.addEventListener('change',ev=>{const el=ev.target.closest('[data-kart319-field]');if(!el)return;const p=state.plans.find(x=>x.id===el.dataset.kart319Id&&x.road18Kart&&x.status!=='Disputato');if(!p)return;if(career21Ensure()==='real')return;const field=el.dataset.kart319Field;if(!['aiType','aiDifficulty','gridSize','startPosition'].includes(field))return;const r=configK(p);let value=el.value;if(field==='aiType'&&!['Sophy','Regular AI'].includes(value))return;if(field==='aiDifficulty'&&!levels.includes(value))return;if(field==='gridSize'||field==='startPosition'){value=Number(value);if(!Number.isInteger(value)||value<(field==='gridSize'?2:1)||value>(field==='gridSize'?40:r.gridSize)){updateK();return;}}r[field]=value;if(field==='aiDifficulty')r.startPosition=Math.min(r.gridSize,{Beginner:8,Intermediate:12,Professional:20}[value]);if(field==='gridSize')r.startPosition=Math.min(r.startPosition,value);r.qualifyingMinutes=0;p.raceRegulations=r;p.rules=kartReg315Summary(r);save();});
+document.addEventListener('change',ev=>{const el=ev.target.closest('[data-kart319-field]');if(!el)return;const p=state.plans.find(x=>x.id===el.dataset.kart319Id&&x.road18Kart&&x.status!=='Disputato');if(!p)return;if(career21Ensure()==='real')return;const field=el.dataset.kart319Field;if(!['aiType','aiDifficulty','gridSize','startPosition'].includes(field))return;const r=configK(p);let value=el.value;if(field==='aiType'&&!['Sophy','Regular AI'].includes(value))return;if(field==='aiDifficulty'&&!levels.includes(value))return;if(field==='gridSize'||field==='startPosition'){value=Number(value);if(!Number.isInteger(value)||value<(field==='gridSize'?2:1)||value>(field==='gridSize'?40:r.gridSize)){updateK();return;}}r[field]=value;if(field==='aiDifficulty')r.startPosition=Math.min(r.gridSize,{Beginner:8,Intermediate:12,Professional:20}[value]);if(field==='gridSize')r.startPosition=Math.min(r.startPosition,value);r.qualifyingMinutes=0;p.raceRegulations=r;p.rules=window.kartReg315Summary(r);save();});
 document.addEventListener('click',ev=>{const el=ev.target.closest('[data-kart319-open]');if(!el)return;const index=state.plans.findIndex(p=>p.id===el.dataset.kart319Open&&p.road18Kart);if(index>=0)recordPlanned(index);queueMicrotask(updateK);});
 document.addEventListener('click',ev=>{if(ev.target.closest('[data-page],[data-career20],[data-kart-reg315]'))queueMicrotask(updateK);});
 window.addEventListener('mc-cloud-restored',()=>queueMicrotask(updateK));
