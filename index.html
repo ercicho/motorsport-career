@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.3.7</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.3.8</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -1262,7 +1262,70 @@ road18Purchase=function(id){
   mcCloudLocalSave(JSON.stringify(state));render();
  }
 };
+// v3.3.8: one-time, per-save migration of the earlier kart economy.
+// Do not touch results, do not recreate technical failures, and do not re-charge existing expenses.
+function v338Migrate(){
+ const key='kartEconomy338';
+ state.migrations=state.migrations&&typeof state.migrations==='object'?state.migrations:{};
+ if(state.migrations[key])return;
+ const d=v28Data();
+ const plans=new Map((state.plans||[]).map(p=>[p.id,p]));
+ const kartRaces=(state.races||[]).filter(r=>r.id&&plans.get(r.planId)?.road18Kart);
+ const existingRefs=new Set((state.ledger||[]).map(x=>String(x.ref||'')));
+ let budgetAdjustment=0, travelAdjustment=0, wearEvents=0;
+ // Apply the revised 10k start to old saves only. Do not override user-customized starting budgets.
+ if(Number(state.settings?.startingFunds)===25000){
+  const ref='migration338-starting-budget';
+  if(!existingRefs.has(ref)){
+   addTransaction('Ricalcolo budget iniziale Kart Academy / Starting budget adjustment',-15000,ref);
+   budgetAdjustment=15000;existingRefs.add(ref);
+  }
+ }
+ // Charge historical travel between recorded Kart Academy races only (not unplayed rounds).
+ let previous=null;
+ for(const r of kartRaces){
+  const p=plans.get(r.planId);if(!p)continue;
+  if(previous){
+   const ref='migration338-kart-travel-'+r.id;
+   const already=existingRefs.has(ref)||existingRefs.has('v337-travel-'+r.id);
+   // Only backfill races that predate the transport feature, not events already charged for travel.
+   const alreadyIncludesTravel=Number(r.career21Operating?.travel||0)>0;
+   if(!already && !alreadyIncludesTravel && !r.kartTravel338Charged && !r.kartTravel337Charged){
+    const from=v337KartRegion(previous.track),to=v337KartRegion(p.track);
+    const cost=from===to?120:from==='EU'&&to==='EU'?280:((from==='JP'&&to==='EU')||(from==='EU'&&to==='JP'))?950:1100;
+    // Existing race charges may already include transport; avoid charging without evidence.
+    if(cost>0){addTransaction('Trasporto kart storico / Historical kart transport · '+p.track,-cost,ref);travelAdjustment+=cost;existingRefs.add(ref)}
+   }
+  }
+  previous=p;
+ }
+ // Upgrade pre-3.3.6 mechanical wear deterministically. No replay of incidents or body damage.
+ // Existing servicing makes the historic condition ambiguous: skip it rather than penalizing repairs already paid.
+ const h=d.vehicles['owned:kart'];
+ if(h && Number(h.serviceCount||0)===0){
+  const events=(d.events||[]).filter(e=>e.vehicleId==='owned:kart'&&!e.raceDeleted&&kartRaces.some(r=>r.id===e.raceId));
+  const pace=state.road18?.kartPace||'standard';
+  const ranges={short:[[1,2],[1,2],[1,2]],standard:[[2,3],[3,4],[2,4]],real:[[4,6],[5,8],[4,7]]}[pace]||[[2,3],[3,4],[2,4]];
+  for(const e of events){
+   const r=kartRaces.find(x=>x.id===e.raceId),plan=r&&plans.get(r.planId);
+   if(!r||!plan||e.kart338Migrated)continue;
+   // Older model applied ~0.5/0.425/0.575 wear per race, before the stricter kart model.
+   // Only adjust events with the old wear marker; new races already use the updated model.
+   if(Number(e.after)<98.5)continue;
+   const old=[.5,.425,.575];
+   const factor=Math.max(.5,Math.min(2,Number(plan.raceRegulations?.laps||15)/15));
+   ['engine','gearbox','suspension'].forEach((part,i)=>{
+    const [low,high]=ranges[i];const expected=(low+(high-low)*v28Hash(String(r.id)+'|kart-wear|'+part))*factor;
+    h[part]=Math.max(0,Math.round((Number(h[part]??100)-Math.max(0,expected-old[i]))*10)/10);
+   });
+   e.kart338Migrated=true;wearEvents++;
+  }
+ }
+ state.migrations[key]={appliedAt:new Date().toISOString(),budgetAdjustment,travelAdjustment,wearEvents};
+ mcCloudLocalSave(JSON.stringify(state));
+}
 function v28Garage(){
+ v338Migrate();
  const root=document.getElementById('career20-garage')||document.getElementById('road18Content');if(!root)return;
  let panel=document.getElementById('vehicle28Panel');if(!panel){panel=document.createElement('div');panel.id='vehicle28Panel';panel.className='card'}if(panel.parentElement!==root)root.appendChild(panel);
  const d=v28Data();for(const c of road18Ensure().garage)v28Record({id:'owned:'+c.id,name:c.name,owner:'driver',category:(c.id==='kart'?'kart':career21Class(null,{game:'GT7',car:c.name}))});
