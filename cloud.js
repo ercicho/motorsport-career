@@ -1,4 +1,5 @@
 // Motorsport Career Cloud Edition — Firebase modular browser SDK.
+// Firestore rules must restrict users/{uid}/career/main to the authenticated UID.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
@@ -224,7 +225,9 @@ function schedule() {
   timer = setTimeout(() => sync(), 1500);
 }
 window.addEventListener('mc-career-changed', schedule);
-window.addEventListener('online', () => {\n  if (!shouldSyncOnReconnect({online:navigator.onLine, authenticated:!!user, pendingLocalChanges:!!user && valid(local()) && local() !== localStorage.getItem(syncedSnapshotKey())})) return;\n  if (syncEnabled) sync();\n});
+window.addEventListener('online', () => {
+  if (!shouldSyncOnReconnect({online:navigator.onLine, authenticated:!!user, pendingLocalChanges:!!user && valid(local()) && local() !== localStorage.getItem(syncedSnapshotKey())})) return;\n  if (syncEnabled) sync();
+});
 window.addEventListener('offline', () => { if (user) status('Offline · local save preserved; waiting for connection.', true); });
 
 $('mc-use-local').onclick = async () => {
