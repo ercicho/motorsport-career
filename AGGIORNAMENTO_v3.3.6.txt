@@ -1,0 +1,7 @@
+Motorsport Career v3.3.6 - Kart Academy usura meccanica
+- Gare future: motore, cambio e sospensioni con usura in base alla durata carriera.
+- Carrozzeria: nessuna usura senza danni dichiarati; danni proporzionali al rapporto gara.
+- Kart: avviso sotto 85%, maggior rischio di imprevisti sotto 70%, revisione obbligatoria se un componente scende sotto 50%.
+- Nessuna modifica retroattiva ai risultati o alle condizioni gia salvate.
+- ECU e usura motore rimangono separati.
+- Nota: prestazioni e guasti sono simulati nel gestionale; GT7 non viene modificato automaticamente.
