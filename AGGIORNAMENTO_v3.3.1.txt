@@ -1,0 +1,6 @@
+Motorsport Career v3.3.1
+- News Charity Cup con banner grafico e pulsante per aprire la pagina ufficiale interna.
+- Pagina evento: calendario 6 round, requisiti, costo 0 Cr., regole benefiche, stato posti.
+- Iscrizione collegata al pulsante esistente del Calendario; nessun sistema parallelo.
+- Nessuna donazione reale e nessun rimborso automatico.
+- Verificata sintassi JavaScript e 9 test cloud. Interfaccia browser non verificata.
