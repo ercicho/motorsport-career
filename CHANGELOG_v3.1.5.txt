@@ -1,7 +1,0 @@
-Race Career Cloud v3.1.5
-- Canonical JSON snapshot comparison: ignore object key order without ignoring actual career changes.
-- Queue follow-up synchronization when edits occur during an upload; keep the uploaded snapshot as baseline.
-- Check cloud again when connectivity returns.
-- Correct licence badge colour to match current GT7 medal (Bronzo, Argento, Oro).
-- Update PWA cache and include cloud-sync-core.mjs in pre-cache.
-- Preserve explicit conflict resolution for ambiguous or concurrent edits.

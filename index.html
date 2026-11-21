@@ -870,10 +870,10 @@ road18KartStart=function(){
 // Karting Academy regulations v3.1.5: suggestions, not guaranteed GT7 settings.
 function kartReg315Defaults(pace, index) {
  const config={short:{laps:[5,6,7],practice:5,qualifying:0},standard:{laps:[10,12,14,15,16],practice:10,qualifying:5},real:{laps:[15,16,18,20,21,22,24,25],practice:15,qualifying:10}}[pace]||{laps:[10,12,14,15,16],practice:10,qualifying:5};
- return {laps:config.laps[Math.min(index,config.laps.length-1)],practiceMinutes:config.practice,qualifyingMinutes:config.qualifying,damage:pace==='short'?'Off':'Light',tyreWear:'1x',fuelUse:'1x',penalties:true,start:'Standing',weather:'Default',ai:'Custom',notes:''};
+ return {laps:config.laps[Math.min(index,config.laps.length-1)],practiceMinutes:config.practice,qualifyingMinutes:0,damage:pace==='short'?'Off':'Light',tyreWear:'1x',fuelUse:'1x',penalties:true,start:'Standing',weather:'Default',ai:'Custom',notes:''};
 }
 function kartReg315Summary(r){
- return 'Karting Academy · '+r.laps+' giri · prove '+r.practiceMinutes+' min · qualifiche '+r.qualifyingMinutes+' min · danni '+r.damage+' · gomme '+r.tyreWear+' · carburante '+r.fuelUse+' · penalità '+(r.penalties?'on':'off')+' · partenza '+r.start+' · meteo '+r.weather+' · IA '+r.ai+(r.notes?' · '+r.notes:'')+' · impostazioni suggerite: verificare disponibilità in GT7';
+ return 'Karting Academy · '+r.laps+' giri · prove '+r.practiceMinutes+' min · qualifiche non previste · danni '+r.damage+' · gomme '+r.tyreWear+' · carburante '+r.fuelUse+' · penalità '+(r.penalties?'on':'off')+' · partenza '+r.start+' · meteo '+r.weather+' · IA '+r.ai+(r.notes?' · '+r.notes:'')+' · impostazioni suggerite: verificare disponibilità in GT7';
 }
 function kartReg315For(p){
  if(!p.raceRegulations){
@@ -887,7 +887,7 @@ function kartReg315Edit(planId){
  if(!plan)return;
  if(plan.status==='Disputato')return alert('Sessione già disputata: il regolamento storico non può essere modificato.');
  const current=kartReg315For(plan);
- const fields=[['laps','Giri',1,200],['practiceMinutes','Prove libere (minuti)',0,120],['qualifyingMinutes','Qualifiche (minuti)',0,120]];
+ const fields=[['laps','Giri',1,200],['practiceMinutes','Prove libere (minuti)',0,120]];
  const updated={...current};
  for(const [key,label,min,max] of fields){
   const response=prompt(label+' ('+min+'-'+max+')',String(current[key]));
@@ -901,8 +901,7 @@ function kartReg315Edit(planId){
   ['tyreWear','Usura gomme',['Off','1x','2x','3x','5x']],
   ['fuelUse','Consumo carburante',['Off','1x','2x','3x','5x']],
   ['start','Tipo partenza',['Standing','Rolling']],
-  ['weather','Meteo',['Default','Clear','Variable']],
-  ['ai','IA',['Custom','Easy','Normal','Hard','No AI']]
+  ['weather','Meteo',['Default','Clear','Variable']]
  ]){
   const response=prompt(label+' — '+options.join(' / '),current[key]);
   if(response===null)return;
@@ -915,6 +914,7 @@ function kartReg315Edit(planId){
  const note=prompt('Note / limitazioni GT7 (facoltative)',current.notes||'');
  if(note===null)return;
  updated.notes=note.trim().slice(0,500);
+ updated.qualifyingMinutes=0;
  plan.raceRegulations=updated;
  plan.rules=kartReg315Summary(updated);
  save();
@@ -1804,99 +1804,51 @@ const oldSave=save;save=function(){const y=data29().year;for(const p of state.pl
 </script>
 
 
-<script id="kart317-inline">
-/* Karting Academy v3.1.7: same saved raceRegulations in Academy, Race Engineer and Calendar. */
+<script id="kart319-inline">
 (function(){
- 'use strict';
- const levels=['Beginner','Intermediate','Advanced','Professional','Elite'];
- const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const plans=()=>state.plans.filter(p=>p.road18Kart);
- const mode=()=>state.road18?.kartPace||career21Ensure();
- function suggested(p){
-   const i=Math.max(0,(Number(p.kart224Index)||plans().indexOf(p)+1)-1);
-   if(mode()==='short')return i<2?'Beginner':'Intermediate';
-   if(mode()==='real')return i<2?'Intermediate':i<4?'Advanced':'Professional';
-   return i<2?'Intermediate':'Advanced';
- }
- function regulations(p){return kartReg315For(p);}
- function ai(p){const a=regulations(p).ai;return levels.includes(a)?a:suggested(p);}
- function fields(p){
-   const r=regulations(p);
-   return [['Giri',r.laps],['Prove libere',r.practiceMinutes+' min'],['Qualifiche',r.qualifyingMinutes+' min'],
-    ['Danni',r.damage],['Usura gomme',r.tyreWear],['Carburante',r.fuelUse],
-    ['Penalità',r.penalties?'Attive':'Disattivate'],['Partenza',r.start],['Meteo',r.weather],['Difficoltà IA',ai(p)]];
- }
- function details(p){
-   return '<div class="kart317-grid">'+fields(p).map(([k,v])=>'<div><small>'+e(k)+'</small><strong>'+e(v)+'</strong></div>').join('')+'</div>'+
-     (regulations(p).notes?'<p class="helper">Note: '+e(regulations(p).notes)+'</p>':'')+
-     '<p class="helper">Livelli IA consigliati da Race Career: verificare le opzioni effettive disponibili in GT7.</p>';
- }
- function card(p,compact=false){
-   return '<div class="kart317-card"><h3>'+e(p.event)+'</h3><p class="helper">'+e(p.track)+' · '+e(p.car||'Racing Kart')+' · '+e(p.status||'Da disputare')+'</p>'+
-   details(p)+(p.status==='Disputato'?'<small>Completata · sola lettura</small>':
-   '<label>Difficoltà IA <select data-kart317-ai="'+e(p.id)+'">'+levels.map(l=>'<option value="'+l+'"'+(ai(p)===l?' selected':'')+'>'+l+'</option>').join('')+'</select></label>'+
-   '<button type="button" data-kart-reg315="'+e(p.id)+'">Modifica regolamento completo</button>')+
-   (!compact&&p.status!=='Disputato'?'<button type="button" data-kart317-open="'+e(p.id)+'">Apri Race Weekend</button>':'')+'</div>';
- }
- const css=document.createElement('style');
- css.textContent='.kart317-card{border:1px solid #465261;border-radius:12px;padding:13px;margin:12px 0;background:#151d28}.kart317-card h3{margin:0 0 7px}.kart317-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin:12px 0}.kart317-grid>div{background:#233040;padding:8px;border-radius:8px}.kart317-grid small{display:block;color:#b7c5d3}.kart317-grid strong{display:block;margin-top:4px}.kart317-card button{margin:5px}.kart317-card select{max-width:220px}';
- document.head.append(css);
- function place(host,id,html){
-   if(!host)return;
-   let node=document.getElementById(id);
-   if(!node){node=document.createElement('div');node.id=id;host.append(node);}
-   if(node.dataset.html!==html){node.innerHTML=html;node.dataset.html=html;}
- }
- function update(){
-   const ps=plans();
-   // The Academy is a dedicated section; road18 is the alternative Road to Pro view.
-   const academy=document.getElementById('career20-kart');
-   place(academy,'kart317-academy','<h2>Sessioni Karting Academy · regolamenti</h2>'+
-      (ps.length?ps.map(p=>card(p)).join(''):'<p class="helper">Pianifica le sessioni per visualizzare i regolamenti.</p>'));
-   const road=document.getElementById('road18Content');
-   place(road,'kart317-road','<h2>Regolamenti Karting Academy</h2>'+
-      (ps.length?ps.map(p=>card(p,true)).join(''):'<p class="helper">Nessuna sessione pianificata.</p>'));
-   const current=state.plans.find(p=>p.id===window.pendingPlanId);
-   const rw=document.getElementById('rwBriefStage');
-   if(rw){
-     const old=document.getElementById('kart317-race');
-     if(!current?.road18Kart){old?.remove();}
-     else place(rw,'kart317-race','<h3>Regolamento della sessione</h3>'+card(current,true));
-   }
-   // The Race Engineer home card describes the next pending event.
-   const next=state.plans.find(p=>p.status!=='Disputato');
-   const home=document.getElementById('homeBriefing10');
-   if(home){
-     const old=document.getElementById('kart317-home');
-     if(!next?.road18Kart){old?.remove();}
-     else place(home,'kart317-home',card(next,true));
-   }
- }
- const originalRender=render;
- render=function(...args){const value=originalRender.apply(this,args);update();return value;};
- document.addEventListener('change',event=>{
-   const el=event.target.closest('[data-kart317-ai]');
-   if(!el)return;
-   const p=state.plans.find(x=>x.id===el.dataset.kart317Ai&&x.road18Kart);
-   if(!p||p.status==='Disputato'||!levels.includes(el.value))return;
-   p.raceRegulations={...regulations(p),ai:el.value};
-   p.rules=kartReg315Summary(p.raceRegulations);
-   save();
- });
- document.addEventListener('click',event=>{
-   const btn=event.target.closest('[data-kart317-open]');
-   if(!btn)return;
-   const p=state.plans.find(x=>x.id===btn.dataset.kart317Open);
-   if(p&&p.status!=='Disputato')recordPlanned(state.plans.indexOf(p));
-   queueMicrotask(update);
- });
- document.addEventListener('click',event=>{
-   if(event.target.closest('[data-page], [data-career20], [data-kart-reg315]'))queueMicrotask(update);
- });
- // Briefing selection and stage transitions may not invoke render().
- const watch=document.getElementById('rwBriefStage');
- if(watch)new MutationObserver(()=>queueMicrotask(update)).observe(watch,{attributes:true,attributeFilter:['hidden']});
- update();
+'use strict';
+const levels=['Beginner','Intermediate','Professional'];
+const escK=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const plansK=()=>state.plans.filter(p=>p.road18Kart);
+function presetK(p){
+ const i=Math.max(0,(Number(p.kart224Index)||plansK().indexOf(p)+1)-1);
+ const mode=state.road18?.kartPace||career21Ensure();
+ return mode==='short'?(i===0?'Beginner':'Intermediate'):mode==='real'?(i<2?'Intermediate':'Professional'):(i<3?'Intermediate':'Professional');
+}
+function configK(p){
+ const r=kartReg315For(p);
+ const difficulty=levels.includes(r.aiDifficulty)?r.aiDifficulty:levels.includes(r.ai)?r.ai:presetK(p);
+ const gridSize=Number.isInteger(Number(r.gridSize))&&Number(r.gridSize)>=2&&Number(r.gridSize)<=40?Number(r.gridSize):20;
+ const suggested={Beginner:8,Intermediate:12,Professional:20}[difficulty];
+ const position=Math.min(gridSize,Math.max(1,Number.isInteger(Number(r.startPosition))&&Number(r.startPosition)>0?Number(r.startPosition):suggested));
+ return {...r,qualifyingMinutes:0,aiType:r.aiType==='Sophy'?'Sophy':'Regular AI',aiDifficulty:difficulty,gridSize,startPosition:position};
+}
+function rowsK(p){const r=configK(p);return [['Giri',r.laps],['Prove libere',r.practiceMinutes+' min'],['Qualifiche','Non previste'],['Tipo IA',r.aiType==='Sophy'?'GT Sophy':'Regular AI'],['Difficoltà IA',r.aiDifficulty],['Griglia',r.gridSize+' piloti'],['Posizione partenza','P'+r.startPosition],['Danni',r.damage],['Gomme',r.tyreWear],['Carburante',r.fuelUse],['Penalità',r.penalties?'Attive':'Disattivate'],['Partenza',r.start],['Meteo',r.weather]];}
+function detailsK(p){return '<div class="kart319-grid">'+rowsK(p).map(([a,b])=>'<div><small>'+escK(a)+'</small><strong>'+escK(b)+'</strong></div>').join('')+'</div>'+(configK(p).notes?'<p class="helper">'+escK(configK(p).notes)+'</p>':'')+'<p class="helper">Impostazioni suggerite da Race Career. La disponibilità di GT Sophy, la griglia e le opzioni effettive dipendono da circuito e modalità GT7.</p>';}
+function cardK(p,small=false){const r=configK(p),locked=p.status==='Disputato';return '<article class="kart319-card"><h3>'+escK(p.event)+'</h3><p class="helper">'+escK(p.track)+' · '+escK(p.car||'Racing Kart')+' · '+escK(p.status||'Da disputare')+'</p>'+detailsK(p)+(locked?'<small>Sessione completata · sola lettura</small>':'<div class="kart319-controls"><label>Tipo IA<select data-kart319-field="aiType" data-kart319-id="'+escK(p.id)+'"><option value="Regular AI"'+(r.aiType==='Regular AI'?' selected':'')+'>Regular AI</option><option value="Sophy"'+(r.aiType==='Sophy'?' selected':'')+'>GT Sophy</option></select></label><label>Difficoltà<select data-kart319-field="aiDifficulty" data-kart319-id="'+escK(p.id)+'">'+levels.map(l=>'<option'+(r.aiDifficulty===l?' selected':'')+'>'+l+'</option>').join('')+'</select></label><label>Numero piloti<input type="number" min="2" max="40" data-kart319-field="gridSize" data-kart319-id="'+escK(p.id)+'" value="'+r.gridSize+'"></label><label>Partenza P<input type="number" min="1" max="'+r.gridSize+'" data-kart319-field="startPosition" data-kart319-id="'+escK(p.id)+'" value="'+r.startPosition+'"></label></div><button type="button" data-kart-reg315="'+escK(p.id)+'">Modifica altre impostazioni</button>'+(small?'':'<button type="button" data-kart319-open="'+escK(p.id)+'">Apri Race Weekend</button>'))+'</article>';}
+const style=document.createElement('style');style.textContent='.kart319-card{background:#17202b;border:1px solid #445364;border-radius:12px;padding:14px;margin:12px 0}.kart319-card h3{margin:0 0 7px}.kart319-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin:12px 0}.kart319-grid>div{background:#25313e;padding:8px;border-radius:7px}.kart319-grid small{display:block;color:#b9c7d6}.kart319-grid strong{display:block;margin-top:3px}.kart319-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px}.kart319-controls input,.kart319-controls select{max-width:100%;width:100%}.kart319-card button{margin:5px 6px 0 0}';document.head.append(style);
+function setK(host,id,html){if(!host)return;let node=document.getElementById(id);if(!node||!host.contains(node)){node=document.createElement('div');node.id=id;host.append(node);}if(node.dataset.last!==html){node.innerHTML=html;node.dataset.last=html;}}
+function updateK(){
+ const ps=plansK();
+ // Sibling of career20-kart: survives career20Arrange().replaceChildren().
+ const academy=document.getElementById('academyKart20');
+ setK(academy,'kart319-academy','<h2>Regolamenti delle sessioni kart</h2>'+(ps.length?ps.map(p=>cardK(p)).join(''):'<p class="helper">Pianifica le sessioni kart per visualizzare i regolamenti.</p>'));
+ const p=state.plans.find(x=>x.id===window.pendingPlanId);
+ const rw=document.getElementById('rwBriefStage');
+ if(rw){const old=document.getElementById('kart319-weekend');if(p?.road18Kart)setK(rw,'kart319-weekend','<h3>Regolamento di gara · Karting Academy</h3>'+cardK(p,true));else old?.remove();}
+ const next=state.plans.find(x=>x.status!=='Disputato');
+ const home=document.getElementById('homeBriefing10');
+ if(home){const old=document.getElementById('kart319-home');if(next?.road18Kart)setK(home,'kart319-home',cardK(next,true));else old?.remove();}
+ const qual=document.getElementById('rwQual');
+ if(qual){const label=qual.closest('div');if(label)label.hidden=!!p?.road18Kart;if(p?.road18Kart)qual.value='skip';}
+}
+const previousRender=render;render=function(...args){const result=previousRender.apply(this,args);updateK();return result;};
+if(typeof rwDisplay==='function'){const previousWeekend=rwDisplay;rwDisplay=function(...args){const result=previousWeekend.apply(this,args);updateK();return result;};}
+document.addEventListener('change',ev=>{const el=ev.target.closest('[data-kart319-field]');if(!el)return;const p=state.plans.find(x=>x.id===el.dataset.kart319Id&&x.road18Kart&&x.status!=='Disputato');if(!p)return;const field=el.dataset.kart319Field;if(!['aiType','aiDifficulty','gridSize','startPosition'].includes(field))return;const r=configK(p);let value=el.value;if(field==='aiType'&&!['Sophy','Regular AI'].includes(value))return;if(field==='aiDifficulty'&&!levels.includes(value))return;if(field==='gridSize'||field==='startPosition'){value=Number(value);if(!Number.isInteger(value)||value<(field==='gridSize'?2:1)||value>(field==='gridSize'?40:r.gridSize)){updateK();return;}}r[field]=value;if(field==='aiDifficulty')r.startPosition=Math.min(r.gridSize,{Beginner:8,Intermediate:12,Professional:20}[value]);if(field==='gridSize')r.startPosition=Math.min(r.startPosition,value);r.qualifyingMinutes=0;p.raceRegulations=r;p.rules=kartReg315Summary(r);save();});
+document.addEventListener('click',ev=>{const el=ev.target.closest('[data-kart319-open]');if(!el)return;const index=state.plans.findIndex(p=>p.id===el.dataset.kart319Open&&p.road18Kart);if(index>=0)recordPlanned(index);queueMicrotask(updateK);});
+document.addEventListener('click',ev=>{if(ev.target.closest('[data-page],[data-career20],[data-kart-reg315]'))queueMicrotask(updateK);});
+window.addEventListener('mc-cloud-restored',()=>queueMicrotask(updateK));
+updateK();
 })();
 </script>
 <script id="kart318-navigation-fix">

@@ -1,1 +1,0 @@
-v3.1.2: GT7 Excel-first real-world class/subclass catalogue, rotating used/historic market, real-class narrative eligibility checks for core GT7 series, backward compatible garage and cloud save.

@@ -1,5 +1,0 @@
-v3.0.5 - Garage interaction fix
-- Preserve live market and technical DOM nodes before rebuilding the garage shell.
-- Prevent buttons and their event handlers from disappearing on save/re-render.
-- Keep single owned inventory and existing vehicle/ledger state.
-- Bump service worker cache to v305.

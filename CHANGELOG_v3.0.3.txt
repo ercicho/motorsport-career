@@ -1,7 +1,0 @@
-v3.0.3 - Vehicle catalogue and weather usability
-- 45 curated GT7/ACC vehicle entries in 9 classes; tier labels are narrative, not performance rankings.
-- GT7 purchases integrate with existing garage; ACC entries are reference/team vehicles.
-- Rename Garage personale to Gestione vetture.
-- Scheduled race date editable and saved from Weather Center.
-- Weather requires real track and date within forecast horizon; fictional circuits remain unavailable.
-- Preserves existing save key, purchases, and race history.
