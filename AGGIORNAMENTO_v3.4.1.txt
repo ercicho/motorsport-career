@@ -1,0 +1,1 @@
+v3.4.1 - Preventivo gara dettagliato in Race Weekend: carburante, gomme, meccanico, trasporto, copertura team, totale e saldo stimato. IT/EN. Nessun addebito prima del risultato.

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.0</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.2</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -747,7 +747,26 @@ function v340Travel(p,r){const to=v340Country(p?.track||r?.track);if(!to)return 
 function v337KartRegion(track){const c=v340Country(track);return c==='JP'?'JP':v340Region(c)==='EU'?'EU':c==='US'?'US':c==='BR'?'BR':'OTHER'}
 function v337KartTravel(p,r){return v340Travel(p,r)}
 function career21Budget(p,r){const cls=career21Class(p,r),[fuel,tyres]=career21Rates[cls];const charityRound=!!(p?.templateId===CHARITY330_ID || (p?.game==='GT7' && /Lancer Evolution Final Gr\.4 Charity Cup/i.test(String(p?.event||r?.event||''))));const team=state.career10?.active;const supported=!!(p&&team&&p.contract10Id===team.id&&team.teamId!=='privateer');const mechanic=road18Ensure().mechanic;const mechCost=road18KartDone()&&cls!=='kart'&&(p?.game||r?.game)==='GT7'&&mechanic&&!supported?Number(mechanic.fee||0):0;const enduranceCover=supported&&team?.endurance27?Number(team.cover??0):null;const travel=v340Travel(p,r);const base=fuel+tyres+mechCost;return {cls,fuel,tyres,travel,mechanic:mechCost,covered:charityRound?false:supported,coverPercent:charityRound?null:enduranceCover,total:(charityRound?base:enduranceCover!==null?Math.round(base*(1-enduranceCover)):supported?0:base)+travel};}
-function career21BudgetHTML(p,r){const b=career21Budget(p,r);return '<div class="career21-budget"><strong>Preventivo weekend · '+esc(b.cls.toUpperCase())+'</strong><div class="helper">Carburante: '+b.fuel+' Cr. · Gomme: '+b.tyres+' Cr.'+(b.travel?' · Trasporto evento: '+b.travel+' Cr.':'')+(b.mechanic?' · Meccanico: '+b.mechanic+' Cr.':'')+'</div><div class="helper">'+(b.coverPercent!==null?'Copertura team: '+Math.round(b.coverPercent*100)+'% · A carico del pilota: <b>'+b.total+' Cr.</b>':b.covered?'Costi operativi coperti dal team (modello narrativo).':'A carico del pilota: <b>'+b.total+' Cr.</b>')+'</div></div>'}
+function career21BudgetHTML(p,r){
+ const b=career21Budget(p,r),en=document.documentElement.lang==='en',t=(it,eng)=>en?eng:it;
+ const cash=typeof balance==='function'?Number(balance()||0):0;
+ const money=n=>Number(n||0).toLocaleString(en?'en-GB':'it-IT')+' Cr.';
+ const base=b.fuel+b.tyres+b.mechanic,ops=b.total-b.travel;
+ const row=(label,value,detail='')=>'<tr><td>'+label+(detail?'<small style="display:block;color:#aab4c1">'+detail+'</small>':'')+'</td><td style="text-align:right;white-space:nowrap">'+money(value)+'</td></tr>';
+ const track=p?.track||r?.track||'';
+ const destination=track?'<p class="helper" style="margin:6px 0">'+t('Circuito','Track')+': <b>'+esc(track)+'</b></p>':'';
+ return '<div class="career21-budget race341-estimate" style="border:1px solid #52657a;border-radius:12px;padding:16px;background:#111a24;margin:12px 0">'+
+ '<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><strong style="font-size:18px">'+t('Preventivo gara','Race cost estimate')+'</strong><span class="pill">'+esc(b.cls.toUpperCase())+'</span></div>'+destination+
+ '<p class="helper">'+t('Stima prima del weekend · importi in crediti virtuali','Estimate before the weekend · virtual credits')+'</p>'+
+ '<div class="scroll"><table><thead><tr><th>'+t('Voce di spesa','Expense')+'</th><th style="text-align:right">'+t('Costo','Cost')+'</th></tr></thead><tbody>'+
+ row(t('Carburante','Fuel'),b.fuel)+row(t('Gomme','Tyres'),b.tyres)+row(t('Meccanico','Mechanic'),b.mechanic)+row(t('Trasporto evento','Event transport'),b.travel,t('Calcolato dalla logistica e dal circuito','Based on route and venue'))+
+ '<tr><td><b>'+t('Spese lorde','Gross costs')+'</b></td><td style="text-align:right"><b>'+money(base+b.travel)+'</b></td></tr>'+
+ '<tr><td>'+t('Copertura squadra','Team coverage')+'</td><td style="text-align:right">'+(b.covered||b.coverPercent!==null?'-'+money(Math.max(0,base-ops)):money(0))+'</td></tr>'+
+ '<tr style="background:#243547"><td><b>'+t('TOTALE A TUO CARICO','TOTAL YOU PAY')+'</b></td><td style="text-align:right;font-size:19px"><b>'+money(b.total)+'</b></td></tr></tbody></table></div>'+
+ '<div class="grid" style="margin-top:10px"><div><small>'+t('Saldo disponibile','Current balance')+'</small><strong style="display:block">'+money(cash)+'</strong></div><div><small>'+t('Saldo stimato dopo la gara','Estimated balance after race')+'</small><strong style="display:block;color:'+(cash-b.total<0?'#f4a6a6':'#a7dfc8')+'">'+money(cash-b.total)+'</strong></div></div>'+
+ (cash<b.total?'<p class="warning"><b>'+t('Fondi insufficienti per questo weekend','Insufficient funds for this weekend')+'</b></p>':'')+
+ '<p class="helper" style="margin-bottom:0">'+t('Preventivo non addebitato ora. I costi operativi vengono registrati una sola volta quando inserisci il risultato. Eventuali manutenzioni o danni sono contabilizzati separatamente.','No charge yet. Operating costs are posted once when you record the result. Maintenance and damage costs are accounted for separately.')+'</p></div>';
+}
 function career21OperatingCharge(r,p){const ref='career21-ops-'+r.id;if(state.ledger.some(x=>x.ref===ref))return;const b=career21Budget(p,r);r.career21Operating={...b,ref};if(b.total)addTransaction('Weekend · carburante, gomme'+(b.travel?', trasporto evento':'')+(b.mechanic?', meccanico':'')+' · '+r.event,-b.total,ref);}
 function career21Custom(t){return !!t&& !/^acc\d|^british|^igtc|^gt2|^f12|^f2/.test(t.id)&&!String(t.rules||'').includes('Modalità Campionato ACC')}
 function career21Season(t,pace){const rounds=t.rounds.slice();if(!career21Custom(t))return rounds;const target=pace==='short'?Math.min(3,rounds.length):pace==='real'?Math.max(8,rounds.length):rounds.length;return Array.from({length:target},(_,i)=>rounds[i%rounds.length])}
@@ -764,11 +783,11 @@ const career21RenderBase=render;
 render=function(){career21Ensure();career21RenderBase();let settings=$('career21Settings');if(!settings){settings=document.createElement('div');settings.id='career21Settings';settings.className='card';$('career20-overview')?.prepend(settings)}
  if(settings){const pace=career21Ensure();settings.innerHTML='<h3>Durata carriera</h3><p class="helper">Il ritmo scelto si applica solo alle prossime stagioni personalizzate. I campionati ufficiali ACC e F1 conservano il loro calendario. Nessuna scadenza reale.</p><label for="career21Pace">Ritmo di progressione</label><select id="career21Pace">'+Object.entries(career21Modes).map(([id,m])=>'<option value="'+id+'" '+(id===pace?'selected':'')+'>'+m.name+'</option>').join('')+'</select><p class="helper">Breve: circa 3 round, quota proporzionata · Standard: round originali · Realistica: almeno 8 round nelle stagioni personalizzate. Le licenze e i requisiti di sicurezza non cambiano.</p><button id="career21SavePace" class="smallbutton primary">Salva ritmo per le nuove stagioni</button>';$('career21SavePace').onclick=()=>{state.settings.careerPace=$('career21Pace').value;save()}}
  let costs=$('career21Costs');if(!costs){costs=document.createElement('div');costs.id='career21Costs';costs.className='card';$('economyRules')?.after(costs)}if(costs)costs.innerHTML='<h2>Costi operativi per evento · v2.1</h2><p class="helper">Crediti virtuali, non costi reali. Un solo addebito per gara registrata. I team professionali possono coprire le spese nel modello narrativo.</p><div class="scroll"><table><thead><tr><th>Categoria</th><th>Carburante</th><th>Gomme</th></tr></thead><tbody>'+Object.entries(career21Rates).map(([k,v])=>'<tr><td>'+esc(k)+'</td><td>'+v[0]+' Cr.</td><td>'+v[1]+' Cr.</td></tr>').join('')+'</tbody></table></div>';
- let budget=$('career21RaceBudget');if(!budget){budget=document.createElement('div');budget.id='career21RaceBudget';budget.className='card';$('rcIncident')?.closest('.rc-report')?.before(budget)}if(budget){const p=state.plans.find(x=>x.id===window.pendingPlanId);budget.innerHTML='<h3>Weekend Budget</h3>'+career21BudgetHTML(p,{game:$('game').value,event:$('event').value,car:$('car').value})+'<p class="helper">Il preventivo viene confermato prima di registrare il risultato.</p>'}
+ let budget=$('career21RaceBudget');if(!budget){budget=document.createElement('div');budget.id='career21RaceBudget';budget.className='card';$('rcIncident')?.closest('.rc-report')?.before(budget)}if(budget){const p=state.plans.find(x=>x.id===window.pendingPlanId);budget.innerHTML=career21BudgetHTML(p,{game:$('game').value,event:$('event').value,car:$('car').value})+'<p class="helper">Il preventivo viene confermato prima di registrare il risultato.</p>'}
  const plans=$('plans');if(plans)plans.querySelectorAll('[data-planrace]').forEach(b=>{const idx=Number(b.dataset.planrace),p=state.plans[idx];if(!p)return;const div=document.createElement('div');div.innerHTML=career21BudgetHTML(p);b.before(div)});
 };
 // Keep budget preview responsive when the selected simulator or vehicle changes.
-['game','car'].forEach(id=>$(id)?.addEventListener('change',()=>{const p=state.plans.find(x=>x.id===window.pendingPlanId);const node=$('career21RaceBudget');if(node)node.innerHTML='<h3>Weekend Budget</h3>'+career21BudgetHTML(p,{game:$('game').value,event:$('event').value,car:$('car').value})}));
+['game','car'].forEach(id=>$(id)?.addEventListener('change',()=>{const p=state.plans.find(x=>x.id===window.pendingPlanId);const node=$('career21RaceBudget');if(node)node.innerHTML=career21BudgetHTML(p,{game:$('game').value,event:$('event').value,car:$('car').value})}));
 // v2.1.1: delegated handler survives moving/rebuilding the Academy panel.
 // Capturing ensures no stale onclick on a relocated element can swallow the action.
 document.addEventListener('click', function(event) {
@@ -2113,4 +2132,33 @@ settle();draw();
 })();
 </script>
 <script type="module" src="./cloud.js"></script>
+<div id="kart342Panel" class="card" style="max-width:1000px;margin:20px auto"></div><div id="kart342Shelf" style="display:none"></div><div id="kart342Brief" style="display:none"></div>
+<style id="kart342-style">
+.k342-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px}.k342-prize{background:#202a36;border:1px solid #3b4755;border-radius:12px;padding:12px;text-align:center}.k342-prize img{width:100%;height:135px;object-fit:contain}.k342-prize strong{display:block}.k342-summary{padding:12px;background:#202a36;border-radius:10px;margin:12px 0}.k342-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.k342-row select{max-width:230px}
+</style>
+<script id="kart342-mount">(function(){const academy=document.getElementById('road18');const panel=document.getElementById('kart342Panel');if(academy&&panel){panel.style.margin='12px 0';academy.appendChild(panel)}const legacy=document.getElementById('road18');const shelf=document.getElementById('kart342Shelf');if(legacy&&shelf){shelf.style.display='block';shelf.className='card';shelf.innerHTML='<h3>Kart Academy · Trofei / Trophies</h3>';legacy.appendChild(shelf)}const briefing=document.getElementById('rwBriefBudget');const b=document.getElementById('kart342Brief');if(briefing&&b){b.style.display='block';briefing.after(b)}})();</script><script id="kart342-script">
+(function(){
+ const T=(it,en)=>localStorage.getItem('mc-ui-language')==='en'?en:it;
+ const names=['gold','silver','bronze'];
+ const amounts=[1200,700,350]; // final academy bonuses, not per-round awards
+ const prizes=[1,2,3];
+ function academyPlans(){return (state.plans||[]).filter(p=>p.road18Kart)}
+ function finished(){return academyPlans().length>0&&academyPlans().every(p=>p.status==='Disputato')}
+ function prizeMarkup(){return names.map((n,i)=>`<div class="k342-prize"><img src="kart-trophy-${n}.png" alt="${T('Trofeo','Trophy')} P${i+1}"><strong>P${i+1} · ${amounts[i].toLocaleString('it-IT')} Cr.</strong></div>`).join('')}
+ function kart342Render(){
+   const panel=document.getElementById('kart342Panel');if(!panel)return;
+   const plans=academyPlans(),award=state.kart342Award;
+   const label=T('Bonus finale Kart Academy','Kart Academy final bonus');
+   const done=plans.filter(p=>p.status==='Disputato').length;
+   panel.innerHTML=`<h3>${label}</h3><p class="helper">${T('Premi finali per la classifica generale, separati dai premi delle singole gare.','Final overall ranking bonuses, separate from individual race prizes.')}</p><div class="k342-grid">${prizeMarkup()}</div><p class="helper">${T('Sessioni completate','Completed sessions')}: ${done}/${plans.length}. ${T('Il piazzamento generale deve essere confermato dal pilota: l’app non inventa la classifica degli avversari.','The overall position must be confirmed by the driver: the app does not invent opponent standings.')}</p>${award?`<div class="k342-summary">${T('Trofeo conquistato','Trophy earned')}: P${award.position} · ${award.amount.toLocaleString('it-IT')} Cr. · ${esc(award.date.slice(0,10))}</div>`:finished()?`<div class="k342-row"><label for="kart342Rank">${T('Posizione finale ufficiale','Official final position')}</label><select id="kart342Rank"><option value="">${T('Seleziona','Select')}</option>${Array.from({length:20},(_,i)=>`<option value="${i+1}">P${i+1}</option>`).join('')}</select><button id="kart342Confirm" class="primary">${T('Conferma risultato finale','Confirm final result')}</button></div>`:`<p class="helper">${T('Completa tutte le sessioni per registrare il risultato generale.','Complete all sessions to record the overall result.')}</p>`}`;
+   const shelf=document.getElementById('kart342Shelf');if(shelf)shelf.innerHTML=award&&award.position<=3?`<div class="k342-prize" style="max-width:260px"><img src="kart-trophy-${names[award.position-1]}.png" alt="Trophy"><strong>Karting Academy · P${award.position}</strong><small>${esc(award.date.slice(0,10))}</small></div>`:`<p class="helper">${T('Nessun trofeo Kart Academy ancora conquistato.','No Kart Academy trophy earned yet.')}</p>`;
+   const brief=document.getElementById('kart342Brief');if(brief){const p=state.plans.find(x=>x.id===window.pendingPlanId);if(p?.road18Kart){const r={game:'GT7',event:p.event,car:p.car,outcome:'Classificato',damage:'none'};const values=[1,2,3].map(pos=>raceEconomy({...r,finish:pos},p).prize);brief.innerHTML=`<div class="k342-summary"><strong>${T('Possibili premi gara','Potential race prizes')}</strong><div class="k342-row">${values.map((v,i)=>`<span>P${i+1}: <b>${v.toLocaleString('it-IT')} Cr.</b></span>`).join('')}</div><small>${T('Stima dei premi base, prima di penalità e spese. Bonus finale Academy: P1 1.200, P2 700, P3 350 Cr.','Base prize estimate before penalties and expenses. Academy final bonus: P1 1,200, P2 700, P3 350 Cr.')}</small></div>`}else brief.innerHTML='';}
+ }
+ document.addEventListener('click',e=>{if(e.target.id!=='kart342Confirm')return;if(state.kart342Award||!finished())return;const rank=Number(document.getElementById('kart342Rank')?.value);if(!Number.isInteger(rank)||rank<1||rank>20)return alert(T('Seleziona la posizione finale.','Select the final position.'));if(!confirm(T('Confermi la posizione finale P','Confirm final position P')+rank+'?'))return;const amount=rank<=3?amounts[rank-1]:0;const date=new Date().toISOString();state.kart342Award={position:rank,amount,date};if(amount&&!state.ledger.some(x=>x.ref==='kart342-final-award'))addTransaction('Kart Academy · bonus classifica finale P'+rank,amount,'kart342-final-award');save();kart342Render()});
+ const originalRender=render;render=function(){originalRender();kart342Render()};
+ const originalCloudRestore=window.mcCloudRestore;window.mcCloudRestore=function(json){originalCloudRestore(json);kart342Render()};
+ const originalImport=document.getElementById('import')?.onchange;if(originalImport){document.getElementById('import').onchange=async function(e){await originalImport.call(this,e);kart342Render()}};
+ kart342Render();
+})();
+</script>
 </body></html>
