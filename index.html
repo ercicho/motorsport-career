@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.17</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.18</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -2236,40 +2236,69 @@ settle();draw();
   return original.call(this);
  };
 })();
-</script><script src="kart-standings.js?v=3415"></script><style id="rc417-style">#rc417List{display:grid;gap:10px;margin-top:12px}.rc417-entry{border:1px solid #40516a;border-radius:10px;padding:12px;background:#192532}.rc417-entry .row{display:flex;gap:10px;flex-wrap:wrap}.rc417-entry .row>div{flex:1;min-width:130px}.rc417-entry label{margin-top:6px}.rc417-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}</style>
-<script id="rc417-script">
+</script><script src="kart-standings.js?v=3415"></script><style id="rc418-style">
+#rc418List{display:grid;gap:12px;margin:12px 0}.rc418-entry{border:1px solid #40516a;border-radius:12px;padding:13px;background:#192532}.rc418-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.rc418-entry label{margin-top:5px}.rc418-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.rc418-actions{display:flex;flex-wrap:wrap;gap:8px}.rc418-entry select{min-width:0}.rc418-entry select:disabled{opacity:.6}@media(max-width:650px){.rc418-fields{grid-template-columns:1fr}}
+</style>
+<script id="rc418-script">
 (function(){
-'use strict';
-const $=id=>document.getElementById(id);
-const tr=(it,en)=>localStorage.getItem('mc-ui-language')==='en'?en:it;
-const area=$('rcIncident')?.closest('.rc-report');
-if(!area||!$('addRace'))return;
-const holder=document.createElement('div');holder.innerHTML='<div id="rc417List" aria-live="polite"></div><div class="rc417-actions"><button type="button" class="smallbutton" id="rc417Add">+ '+tr('Aggiungi altro contatto / episodio','Add another contact / incident')+'</button></div><p class="helper">'+tr('Ogni episodio viene salvato separatamente. Il verdetto e i costi attuali usano quello piu grave, senza sommare penalita inventate.','Each incident is saved separately. Current verdict and costs use the most serious incident, without inventing cumulative penalties.')+'</p>';
-area.appendChild(holder);
-const list=$('rc417List');
-function add(){
- if(list.children.length>=12)return alert(tr('Massimo 12 episodi per gara.','Maximum 12 incidents per race.'));
- const el=document.createElement('div');el.className='rc417-entry';
- el.innerHTML='<div class="row"><div><label>'+tr('Tipo episodio','Incident type')+'</label><select data-rc417="type"><option value="contact">'+tr('Contatto','Contact')+'</option><option value="offtrack">'+tr('Uscita di pista','Off-track')+'</option><option value="dangerous">'+tr('Manovra pericolosa','Dangerous manoeuvre')+'</option></select></div><div><label>'+tr('Responsabilita','Responsibility')+'</label><select data-rc417="fault"><option value="mine">'+tr('Mia','Mine')+'</option><option value="ai">'+tr('IA / altro pilota','AI / another driver')+'</option><option value="racing">'+tr('Incidente di gara','Racing incident')+'</option><option value="none">'+tr('Nessuna','None')+'</option></select></div><div><label>'+tr('Danni','Damage')+'</label><select data-rc417="damage"><option value="none">'+tr('Nessuno','None')+'</option><option value="light">'+tr('Lievi','Light')+'</option><option value="medium">'+tr('Medi','Medium')+'</option><option value="heavy">'+tr('Gravi','Heavy')+'</option></select></div></div><button type="button" class="smallbutton" data-rc417-remove="1">'+tr('Rimuovi episodio','Remove incident')+'</button>';
- list.appendChild(el);
-}
-$('rc417Add').addEventListener('click',add);
-list.addEventListener('click',e=>{if(e.target.closest('[data-rc417-remove]'))e.target.closest('.rc417-entry').remove()});
-function collect(){return [{type:$('rcIncident').value,fault:$('fault').value,damage:$('damage').value},...Array.from(list.children).map(el=>({type:el.querySelector('[data-rc417="type"]').value,fault:el.querySelector('[data-rc417="fault"]').value,damage:el.querySelector('[data-rc417="damage"]').value}))]}
-function validate(x){if(!x.type)return tr('Seleziona il primo episodio.','Select the first incident.');if(x.type==='clean'&&(x.fault!=='none'||x.damage!=='none'))return tr('Gara pulita: nessuna responsabilita o danno.','Clean race: no fault or damage.');if(x.type==='contact'&&x.fault==='none')return tr('Indica la responsabilita del contatto.','Select responsibility for the contact.');if(x.type==='dangerous'&&x.fault!=='mine')return tr('Manovra pericolosa deliberata: responsabilita tua.','Deliberate dangerous manoeuvre: your responsibility.');if(x.type==='offtrack'&&!['none','mine'].includes(x.fault))return tr('Uscita di pista: responsabilita Nessuna o Mia.','Off-track: responsibility None or Mine.');return ''}
-function rank(x){if(x.type==='dangerous')return 5;if(x.type==='contact'&&x.fault==='mine')return {none:1,light:2,medium:3,heavy:4}[x.damage]||1;if(x.type==='offtrack')return 1;return 0}
-const previous=$('addRace').onclick;
-$('addRace').onclick=function(...args){
- const incidents=collect();for(let i=0;i<incidents.length;i++){const error=validate(incidents[i]);if(error)return alert(tr('Episodio ','Incident ')+(i+1)+': '+error)}
- if(incidents[0].type==='clean'&&incidents.length>1)return alert(tr('Se aggiungi contatti, il primo episodio non puo essere Nessun incidente.','When adding incidents, the first cannot be No incident.'));
- const chosen=incidents.slice().sort((a,b)=>rank(b)-rank(a))[0];
- const originals={type:$('rcIncident').value,fault:$('fault').value,damage:$('damage').value};
- $('rcIncident').value=chosen.type;$('fault').value=chosen.fault;$('damage').value=chosen.damage;
- const before=state.races.length;
- try{previous.apply(this,args)}finally{
-  if(state.races.length>before){const race=state.races[state.races.length-1];race.rcIncidents=incidents;race.rcIncidentCount=incidents.length;list.replaceChildren();save();}
-  else{$('rcIncident').value=originals.type;$('fault').value=originals.fault;$('damage').value=originals.damage;}
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const tr=(it,en)=>localStorage.getItem('mc-ui-language')==='en'?en:it;
+ const area=$('rcIncident')?.closest('.rc-report');
+ const saveButton=$('addRace');
+ if(!area||!saveButton||$('rc418List'))return;
+ // Keep the original inputs for backwards-compatible Race Control verdict and accounting.
+ const legacyRow=$('fault')?.closest('.row');
+ if(legacyRow)legacyRow.style.display='none';
+ const legacyType=$('rcIncident');
+ if(legacyType){legacyType.style.display='none';const lab=legacyType.previousElementSibling;if(lab?.tagName==='LABEL')lab.style.display='none';}
+ const legacyHelper=legacyType?.nextElementSibling;
+ if(legacyHelper?.classList.contains('helper'))legacyHelper.style.display='none';
+ const host=document.createElement('div');
+ host.innerHTML='<h4>'+tr('Episodi della gara','Race incidents')+'</h4><p class="helper">'+tr('Registra ogni episodio separatamente: responsabilita e danni possono essere diversi.','Record each incident separately: responsibility and damage can differ.')+'</p><div id="rc418List"></div><div class="rc418-actions"><button type="button" id="rc418Add" class="smallbutton">+ '+tr('Aggiungi incidente','Add incident')+'</button></div><p class="helper">'+tr('Il verdetto esistente usa l’episodio piu rilevante; lo storico conserva tutti gli episodi.','The existing verdict uses the most relevant incident; the history retains every incident.')+'</p>';
+ area.appendChild(host);
+ const list=$('rc418List');
+ const opts=(items,sel)=>items.map(([v,it,en])=>'<option value="'+v+'"'+(v===sel?' selected':'')+'>'+tr(it,en)+'</option>').join('');
+ const types=[['clean','Nessun incidente','No incident'],['contact','Contatto','Contact'],['offtrack','Uscita di pista','Off-track'],['dangerous','Manovra pericolosa','Dangerous manoeuvre']];
+ const faults=[['none','Nessuna','None'],['mine','Mia','Mine'],['ai','IA / altro pilota','AI / other driver'],['racing','Incidente di gara','Racing incident']];
+ const damages=[['none','Nessuno','None'],['light','Lievi','Light'],['medium','Medi','Medium'],['heavy','Gravi','Heavy']];
+ function add(item){
+  if(list.children.length>=12)return alert(tr('Massimo 12 episodi per gara.','Maximum 12 incidents per race.'));
+  const x=item||{type:'contact',fault:'ai',damage:'none'};
+  const el=document.createElement('div');el.className='rc418-entry';
+  el.innerHTML='<div class="rc418-top"><strong class="rc418-number"></strong><button type="button" class="smallbutton" data-remove="1">'+tr('Rimuovi','Remove')+'</button></div><div class="rc418-fields"><div><label>'+tr('Tipo episodio','Incident type')+'</label><select data-field="type">'+opts(types,x.type)+'</select></div><div><label>'+tr('Responsabilita','Responsibility')+'</label><select data-field="fault">'+opts(faults,x.fault)+'</select></div><div><label>'+tr('Danni','Damage')+'</label><select data-field="damage">'+opts(damages,x.damage)+'</select></div></div>';
+  list.appendChild(el);refresh();
  }
-};
+ function read(el){return Object.fromEntries(['type','fault','damage'].map(k=>[k,el.querySelector('[data-field="'+k+'"]').value]));}
+ function refresh(){
+  Array.from(list.children).forEach((el,i)=>{
+   el.querySelector('.rc418-number').textContent=tr('Episodio ','Incident ')+(i+1);
+   const clean=el.querySelector('[data-field="type"]').value==='clean';
+   const fault=el.querySelector('[data-field="fault"]'),damage=el.querySelector('[data-field="damage"]');
+   if(clean){fault.value='none';damage.value='none'}
+   fault.disabled=clean;damage.disabled=clean;
+  });
+  const chosen=primary();syncLegacy(chosen);
+ }
+ function score(x){const severity={none:0,light:1,medium:2,heavy:3}[x.damage]||0;return (x.type==='dangerous'?40:x.type==='contact'&&x.fault==='mine'?30:x.type==='offtrack'?20:x.type==='contact'?10:0)+severity;}
+ function primary(){return Array.from(list.children).map(read).sort((a,b)=>score(b)-score(a))[0]||{type:'clean',fault:'none',damage:'none'};}
+ function syncLegacy(x){legacyType.value=x.type;$('fault').value=x.fault;$('damage').value=x.damage;legacyType.dispatchEvent(new Event('change',{bubbles:true}));}
+ function validate(x){if(x.type==='clean'&&(x.fault!=='none'||x.damage!=='none'))return tr('Nessun incidente non puo avere danni.','No incident cannot have damage.');if(x.type==='contact'&&x.fault==='none')return tr('Indica la responsabilita.','Select responsibility.');if(x.type==='dangerous'&&x.fault!=='mine')return tr('La manovra deliberata richiede responsabilita Mia.','Deliberate manoeuvre requires Mine.');if(x.type==='offtrack'&&!['none','mine'].includes(x.fault))return tr('Uscita di pista: seleziona Mia o Nessuna.','Off-track: select Mine or None.');return '';}
+ $('rc418Add').addEventListener('click',()=>{if(list.children.length===1&&read(list.firstElementChild).type==='clean'){list.firstElementChild.querySelector('[data-field="type"]').value='contact';list.firstElementChild.querySelector('[data-field="fault"]').value='ai';refresh()}add();});
+ list.addEventListener('change',refresh);
+ list.addEventListener('click',e=>{const b=e.target.closest('[data-remove]');if(!b)return;b.closest('.rc418-entry').remove();if(!list.children.length)add({type:'clean',fault:'none',damage:'none'});refresh();});
+ add({type:'clean',fault:'none',damage:'none'});
+ const previous=saveButton.onclick;
+ if(typeof previous!=='function'){console.error('[Race Control] Original save handler unavailable');return;}
+ saveButton.onclick=function(...args){
+  const incidents=Array.from(list.children).map(read);
+  if(incidents.length>1&&incidents.some(x=>x.type==='clean'))return alert(tr('Rimuovi Nessun incidente quando registri altri episodi.','Remove No incident when recording other episodes.'));
+  for(let i=0;i<incidents.length;i++){const error=validate(incidents[i]);if(error)return alert(tr('Episodio ','Incident ')+(i+1)+': '+error)}
+  const chosen=primary();syncLegacy(chosen);
+  const before=state.races.length;
+  const result=previous.apply(this,args);
+  if(state.races.length>before){const race=state.races[state.races.length-1];race.rcIncidents=incidents;race.rcIncidentCount=incidents.length;save();list.replaceChildren();add({type:'clean',fault:'none',damage:'none'});}
+  return result;
+ };
 })();
 </script></body></html>
