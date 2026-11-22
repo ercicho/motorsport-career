@@ -1,0 +1,1 @@
+v3.4.17: Race Control multi-episodio. + Aggiungi altro contatto, responsabilita e danni per episodio. Il verdetto economico usa il piu grave. Storico rcIncidents preservato. Nessuna modifica ai risultati precedenti.
