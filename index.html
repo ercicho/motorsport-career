@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.3.8</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.3.9</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -2043,6 +2043,50 @@ updateK();
    document.querySelectorAll('#nav [data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===id));
  };
  window.addEventListener('load',restore,{once:true});
+})();
+</script>
+<script id="rental339">
+(function(){
+'use strict';
+const en=()=>localStorage.getItem('mc-ui-language')==='en';
+const t=(it,eng)=>en()?eng:it;
+const h=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const DAY=86400000, MAX_DAYS=45;
+const rentals=()=>{state.rentals339=Array.isArray(state.rentals339)?state.rentals339:[];return state.rentals339};
+const unconfirmed=()=>typeof gt312Vehicles==='undefined'?[]:gt312Vehicles.filter(v=>v.gt7Eligibility==='unverified'||v.market==='review');
+const rate=v=>Math.max(45,Math.min(240,Math.round((Number(v.pp)||550)*.18/5)*5));
+const deposit=v=>rate(v)*3;
+const isCharity=p=>p.templateId==='lancerEvoFinalGr4Promo327'||/Lancer Evolution Final Gr\.4 Charity Cup/i.test(p.event||'');
+const finished=p=>['Disputato','Completato','Completed'].includes(p.status);
+const activeEvent=r=>{const plans=state.plans.filter(p=>r.eventId==='charity'?isCharity(p):String(p.id)===r.eventId);return plans.length>0&&plans.every(finished)};
+function settle(){let changed=false;for(const r of rentals()){
+ if(r.closed||!activeEvent(r))continue;
+ const days=Math.min(MAX_DAYS,Math.max(1,Math.ceil((Date.now()-r.start)/DAY)));
+ const total=days*r.daily,remaining=Math.max(0,total-r.deposit);
+ if(remaining)addTransaction('Noleggio finale / Rental balance: '+r.name+' ('+days+' d)',-remaining,'rental339:'+r.id+':final');
+ r.closed=true;r.days=days;r.total=total;r.closedAt=Date.now();changed=true;
+ }if(changed)mcCloudLocalSave(JSON.stringify(state));return changed}
+function options(){return state.plans.filter(p=>!finished(p)).map(p=>({id:String(p.id),label:String(p.event||p.title||p.track||'Evento')}));}
+function draw(){const host=document.getElementById('g304-market');const owned=document.getElementById('g304-owned');if(!host||!owned)return;
+ let area=document.getElementById('rental339-market');if(!area){area=document.createElement('div');area.id='rental339-market';host.appendChild(area)}
+ const items=unconfirmed(),events=options(),charity=state.plans.some(isCharity)&&state.plans.some(p=>isCharity(p)&&!finished(p));
+ const eventOpts=[...(charity?[{id:'charity',label:'Lancer Evolution Final Gr.4 Charity Cup'}]:[]),...events.filter(p=>!state.plans.some(x=>isCharity(x)&&String(x.id)===p.id))];
+ area.innerHTML='<h3>'+t('Noleggio vetture non confermate','Unverified vehicle rentals')+'</h3><p class="helper">'+t('Le vetture con disponibilità non confermata sono noleggiabili, non rivendibili. Deposito di 3 giorni, saldo alla conclusione dell’evento; massimo 45 giorni fatturabili. Il deposito è un anticipo, non una spesa aggiuntiva.','Vehicles with unverified availability can be rented, never resold. Three-day deposit, final balance on event completion; maximum 45 billable days. Deposit is an advance, not an extra fee.')+'</p>'+
+ '<label>'+t('Vettura','Vehicle')+'<select id="rental339-car">'+items.map(v=>'<option value="'+h(v.model)+'">'+h(v.model)+'</option>').join('')+'</select></label><label>'+t('Evento associato','Linked event')+'<select id="rental339-event">'+eventOpts.map(x=>'<option value="'+h(x.id)+'">'+h(x.label)+'</option>').join('')+'</select></label><div id="rental339-quote" class="helper"></div><button id="rental339-start" '+(!eventOpts.length?'disabled':'')+'>'+t('Noleggia e versa caparra','Rent and pay deposit')+'</button>';
+ const car=area.querySelector('#rental339-car'),ev=area.querySelector('#rental339-event'),quote=area.querySelector('#rental339-quote'),btn=area.querySelector('#rental339-start');
+ const update=()=>{const v=items.find(x=>x.model===car.value);if(!v)return;quote.textContent=t('Tariffa','Daily rate')+': '+rate(v)+' Cr./'+t('giorno','day')+' · '+t('Caparra','Deposit')+': '+deposit(v)+' Cr. · '+t('Saldo','Balance')+': '+t('alla conclusione','on completion');btn.disabled=!ev.value||balance()<deposit(v)||rentals().some(r=>!r.closed&&r.name===v.model)};
+ car.onchange=update;ev.onchange=update;update();
+ btn.onclick=()=>{const v=items.find(x=>x.model===car.value);if(!v||!ev.value)return;const d=deposit(v);if(balance()<d||rentals().some(r=>!r.closed&&r.name===v.model))return;
+ if(!confirm(t('Versare una caparra di ','Pay a deposit of ')+d+' Cr. '+t('per il noleggio di ','to rent ')+v.model+'?'))return;
+ const id='rent339-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);rentals().push({id,name:v.model,eventId:ev.value,start:Date.now(),daily:rate(v),deposit:d,closed:false});addTransaction('Caparra noleggio / Rental deposit: '+v.model,-d,'rental339:'+id+':deposit');save();};
+ let mine=document.getElementById('rental339-owned');if(!mine){mine=document.createElement('div');mine.id='rental339-owned';owned.appendChild(mine)}
+ mine.innerHTML='<h3>'+t('Vetture a noleggio','Rented vehicles')+'</h3>'+(rentals().length?rentals().map(r=>'<div class="world26-box"><strong>'+h(r.name)+'</strong><p class="helper">'+(r.closed?t('Restituita','Returned'):t('Noleggio attivo · non vendibile','Active rental · not for sale'))+' · '+r.daily+' Cr./'+t('giorno','day')+' · '+t('Caparra versata','Deposit paid')+' '+r.deposit+' Cr.'+(r.closed?' · '+r.days+' '+t('giorni','days')+' · '+t('Totale','Total')+' '+r.total+' Cr.':'')+'</p></div>').join(''):'<p class="helper">'+t('Nessun noleggio','No rentals')+'</p>');
+}
+let busy=false;const baseRender=render;
+render=function(){const out=baseRender.apply(this,arguments);if(!busy){busy=true;try{if(settle())baseRender();draw()}finally{busy=false}}return out};
+window.addEventListener('mc-cloud-restored',()=>queueMicrotask(()=>{settle();draw()}));
+document.addEventListener('click',e=>{if(e.target.closest('[data-career20="garage"],[data-g304-tab]'))queueMicrotask(draw)});
+settle();draw();
 })();
 </script>
 <script type="module" src="./cloud.js"></script>
