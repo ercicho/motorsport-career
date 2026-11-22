@@ -1,0 +1,4 @@
+Motorsport Career v3.4.4 - Motorsport Opportunities (prima implementazione)
+Nuova sezione Opportunita con inviti simulati, requisiti, finestre temporali, costi di partecipazione e trasferimento stimato, inserimento nel calendario e lettura dei risultati registrati.
+Gli eventi sono NARRATIVI e NON sono eventi ufficiali dei promotori reali. Il modulo non invia notifiche push e non offre ancora un sistema completo di scouting/contratti automatici.
+ATTENZIONE: solo la quota di iscrizione viene addebitata subito; il trasporto e una stima e resta gestito dal Race Weekend. Prima di utilizzare con una carriera reale, eseguire un backup.

@@ -1,0 +1,5 @@
+Motorsport Career v3.4.7 — Charity Showcases
+5 eventi narrativi simulati da modelli presenti nel file Excel, oltre alla Lancer Charity Cup esistente.
+Finestre sul tempo carriera: giorni 7-28, 28-49, 49-70, 77-105, 112-140.
+Immagini illustrative AI. Iscrizione gratuita, nessun premio o bonus gara pulita.
+Eventi inseriti nel calendario senza duplicati. Non sono gare ufficiali o donazioni reali.
