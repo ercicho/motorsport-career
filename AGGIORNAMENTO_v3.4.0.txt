@@ -1,0 +1,1 @@
+v3.4.0 - Trasporto generale per eventi: origine nazione pilota e ultima gara completata; kart e auto con tariffe diverse. Nessuna migrazione retroattiva. Circuiti sconosciuti non addebitati. IT/EN: voce trasporto evento.
