@@ -1,0 +1,7 @@
+Motorsport Career v3.4.8 - Charity Events fix e nuovi circuiti
+
+Corretto controllo dello stato globale che impediva il rendering della sezione Charity Events.
+Aggiornati i circuiti delle cinque Charity e otto Opportunities.
+Le iscrizioni gia registrate mantengono il circuito originale nello storico: la modifica vale per nuovi inviti.
+Nota: la disponibilita del kart e delle vetture nei layout selezionati va verificata nel simulatore.
+Backup della carriera consigliato prima della pubblicazione.

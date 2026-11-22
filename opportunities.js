@@ -1,15 +1,15 @@
-/* Motorsport Opportunities 3.4.6 - flexible career-time calendar */
+/* Motorsport Opportunities 3.4.8 - flexible career-time calendar */
 (function(){
 'use strict';
 const catalog=[
-{id:'junior-gt',level:0,game:'GT7',track:'Brands Hatch — GP',car:'Club / One-Make',title:'GT Weekend · Junior Support Challenge',fee:250,travel:450,days:14,play:21,rep:4,kind:'support'},
-{id:'festival-kart',level:0,game:'GT7',track:'Tsukuba Circuit',car:'Racing Kart 125 Shifter',title:'Motorsport Festival · Kart Showcase',fee:120,travel:400,days:14,play:21,rep:3,kind:'festival'},
-{id:'f1-paddock',level:0,game:'GT7',track:'Monza',car:'Road Car / One-Make',title:'Grand Prix Weekend · Young Driver Showcase',fee:350,travel:250,days:14,play:21,rep:5,kind:'support'},
-{id:'gt4-test',level:1,game:'ACC',track:'Misano',car:'GT4 (test)',title:'GT4 Development · Evaluation Day',fee:650,travel:300,days:14,play:21,rep:7,kind:'test'},
-{id:'club-wildcard',level:1,game:'GT7',track:'Red Bull Ring',car:'Gr.4',title:'Club Racing · Wildcard Invitation',fee:700,travel:550,days:10,play:14,rep:7,kind:'wildcard'},
-{id:'spa-gt4',level:1,game:'ACC',track:'Spa-Francorchamps',car:'GT4',title:'Endurance Weekend · GT4 Talent Test',fee:900,travel:700,days:14,play:21,rep:8,kind:'test'},
-{id:'gt3-test',level:2,game:'ACC',track:'Brands Hatch',car:'GT3 (test)',title:'GT3 Regional · Talent Evaluation',fee:1100,travel:650,days:10,play:14,rep:9,kind:'test'},
-{id:'endurance',level:2,game:'ACC',track:'Monza',car:'GT3',title:'Endurance Paddock · Reserve Driver Trial',fee:1400,travel:500,days:10,play:14,rep:10,kind:'test'}
+{id:'junior-gt',level:0,game:'GT7',track:'Goodwood Motor Circuit',car:'Club / One-Make',title:'GT Weekend · Junior Support Challenge',fee:250,travel:450,days:14,play:21,rep:4,kind:'support'},
+{id:'festival-kart',level:0,game:'GT7',track:'Willow Springs International Raceway - Streets of Willow Springs',car:'Racing Kart 125 Shifter',title:'Motorsport Festival · Kart Showcase',fee:120,travel:400,days:14,play:21,rep:3,kind:'festival'},
+{id:'f1-paddock',level:0,game:'GT7',track:'Circuit de Barcelona-Catalunya',car:'Road Car / One-Make',title:'Grand Prix Weekend · Young Driver Showcase',fee:350,travel:250,days:14,play:21,rep:5,kind:'support'},
+{id:'gt4-test',level:1,game:'ACC',track:'Circuit Zandvoort',car:'GT4 (test)',title:'GT4 Development · Evaluation Day',fee:650,travel:300,days:14,play:21,rep:7,kind:'test'},
+{id:'club-wildcard',level:1,game:'GT7',track:'Nürburgring GP',car:'Gr.4',title:'Club Racing · Wildcard Invitation',fee:700,travel:550,days:10,play:14,rep:7,kind:'wildcard'},
+{id:'spa-gt4',level:1,game:'ACC',track:'Circuit Paul Ricard',car:'GT4',title:'Endurance Weekend · GT4 Talent Test',fee:900,travel:700,days:14,play:21,rep:8,kind:'test'},
+{id:'gt3-test',level:2,game:'ACC',track:'Hungaroring',car:'GT3 (test)',title:'GT3 Regional · Talent Evaluation',fee:1100,travel:650,days:10,play:14,rep:9,kind:'test'},
+{id:'endurance',level:2,game:'ACC',track:'Silverstone',car:'GT3',title:'Endurance Paddock · Reserve Driver Trial',fee:1400,travel:500,days:10,play:14,rep:10,kind:'test'}
 ];
 const images={'junior-gt':'opportunity-club.webp','festival-kart':'opportunity-kart.webp','f1-paddock':'opportunity-formula.webp','gt4-test':'opportunity-gt4.webp','club-wildcard':'opportunity-festival.webp','spa-gt4':'opportunity-endurance.webp','gt3-test':'opportunity-gt3.webp','endurance':'opportunity-trial.webp'};
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
