@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.10</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.11</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -952,7 +952,7 @@ road18KartStart=function(){
 };
 // Karting Academy regulations v3.1.5: suggestions, not guaranteed GT7 settings.
 function kartReg315Defaults(pace, index) {
- const config={short:{laps:[5,6,7],practice:5,qualifying:0},standard:{laps:[10,12,14,15,16],practice:10,qualifying:5},real:{laps:[15,12,15,15,15,15,15,15],practice:15,qualifying:0}}[pace]||{laps:[10,12,14,15,16],practice:10,qualifying:5};
+ const config={short:{laps:[5,6,7],practice:5,qualifying:0},standard:{laps:[10,12,14,15,16],practice:10,qualifying:5},real:{laps:[15,12,12,12,12,12,12,12],practice:15,qualifying:0}}[pace]||{laps:[10,12,14,15,16],practice:10,qualifying:5};
  return {laps:config.laps[Math.min(index,config.laps.length-1)],practiceMinutes:config.practice,qualifyingMinutes:0,damage:pace==='short'?'Off':pace==='real'?'Heavy':'Light',tyreWear:'1x',fuelUse:'1x',penalties:true,start:'Standing',weather:'Default',ai:'Custom',notes:''};
 }
 function kartReg315Summary(r){
@@ -2026,7 +2026,7 @@ function configK(p){
  const historical=p.status==='Disputato';
  return {...r,qualifyingMinutes:0,aiType:sophyTrackK(p.track)?'Sophy':'Regular AI',aiDifficulty:difficulty,gridSize,startPosition:position,
   ecu:historical?(r.ecu??'Non registrata'):ecuK(p),
-  ...(realistic?{laps:Number(p.kart224Index)===2?12:15,damage:'Heavy',tyreWear:'1x',fuelUse:'1x',penalties:true}: {})};
+  ...(realistic?{laps:Number(p.kart224Index)>=2?12:15,damage:'Heavy',tyreWear:'1x',fuelUse:'1x',penalties:true}: {})};
 }
 function rowsK(p){const r=configK(p);return [['Giri',r.laps],['ECU (potenza)',typeof r.ecu==='number'?r.ecu+'%':r.ecu],['Prove libere',r.practiceMinutes+' min'],['Qualifiche','Non previste'],['Tipo IA',r.aiType==='Sophy'?'GT Sophy':'Regular AI'],['Difficoltà IA',r.aiDifficulty],['Griglia',r.gridSize+' piloti'],['Posizione partenza','P'+r.startPosition],['Danni',r.damage],['Gomme',r.tyreWear],['Carburante',r.fuelUse],['Penalità',r.penalties?'Attive':'Disattivate'],['Partenza',r.start],['Meteo',r.weather]];}
 function detailsK(p){return '<div class="kart319-grid">'+rowsK(p).map(([a,b])=>'<div><small>'+escK(a)+'</small><strong>'+escK(b)+'</strong></div>').join('')+'</div>'+(configK(p).notes?'<p class="helper">'+escK(configK(p).notes)+'</p>':'')+'<p class="helper">'+escK(sophyStatusK(p))+'</p><p class="helper">Piloti GT7 di riferimento: Igor Fraga, Valerio Gallo, Ryota Kokubun, Baptiste Beauvois. I nomi non identificano gli agenti Sophy. </p><p class="helper">Impostazioni suggerite da Race Career. La disponibilità di GT Sophy, la griglia e le opzioni effettive dipendono da circuito e modalità GT7.</p>';}
@@ -2035,22 +2035,27 @@ const style=document.createElement('style');style.textContent='.kart319-card{bac
 function setK(host,id,html){if(!host)return;let node=document.getElementById(id);if(!node||!host.contains(node)){node=document.createElement('div');node.id=id;host.append(node);}if(node.dataset.last!==html){node.innerHTML=html;node.dataset.last=html;}}
 function updateK(){
  const ps=plansK();
- // v3.4.10: update only an unplayed Realistica Round 2, including existing saved plans.
+ // v3.4.11: apply 12 laps to unplayed Realistica rounds 2-8 only.
  if(career21Ensure()==='real'){
-  let round2Updated=false;
+  let kartLapsUpdated=false;
   for(const p of ps){
-   if(Number(p.kart224Index)!==2 || p.status==='Disputato')continue;
+   const round=Number(p.kart224Index)||ps.indexOf(p)+1;
+   if(round<2 || p.status==='Disputato')continue;
    const old=window.kartReg315For(p);
-   if(Number(old.laps)!==12){p.raceRegulations={...old,laps:12};p.rules=window.kartReg315Summary(p.raceRegulations);round2Updated=true;}
+   if(Number(old.laps)!==12){
+    p.raceRegulations={...old,laps:12};
+    p.rules=window.kartReg315Summary(p.raceRegulations);
+    kartLapsUpdated=true;
+   }
   }
-  if(round2Updated)window.mcCloudLocalSave(JSON.stringify(state));
+  if(kartLapsUpdated)window.mcCloudLocalSave(JSON.stringify(state));
  }
  // Migrazione una tantum delle sole sessioni non disputate, senza toccare quelle storiche.
  let changed=false;
  ps.forEach(p=>{if(p.status==='Disputato'||p.kart334Migrated)return;
   const i=Math.max(0,(Number(p.kart224Index)||ps.indexOf(p)+1)-1);
   if(window.kart224Tracks?.[i] && p.track!==window.kart224Tracks[i]){p.track=window.kart224Tracks[i];changed=true;}
-  p.raceRegulations={...window.kartReg315For(p),laps:(Number(p.kart224Index)===2&&career21Ensure()==='real'?12:15),tyreWear:'1x',fuelUse:'1x',qualifyingMinutes:0};
+  p.raceRegulations={...window.kartReg315For(p),laps:(career21Ensure()==='real'?(Number(p.kart224Index)>=2?12:15):window.kartReg315For(p).laps),tyreWear:'1x',fuelUse:'1x',qualifyingMinutes:0};
   p.rules=window.kartReg315Summary(p.raceRegulations);p.kart334Migrated=true;changed=true;
  });
  if(changed){window.mcCloudLocalSave(JSON.stringify(state));}
