@@ -1,4 +1,4 @@
-/* Motorsport Opportunities 3.4.8 - flexible career-time calendar */
+/* Motorsport Opportunities 3.4.9 - flexible career-time calendar */
 (function(){
 'use strict';
 const catalog=[
@@ -38,6 +38,18 @@ function offer(e){const d=data(),i=catalog.indexOf(e),open=i*3,close=open+e.days
 function outcome(e){const entry=data().entries[e.id];if(!entry)return null;const p=(state.plans||[]).find(x=>x.id===entry.planId);const race=(state.races||[]).find(r=>String(r.planId||'')===String(entry.planId)||(r.event===e.title&&r.track===e.track));return {p,race};}
 function isMissed(e){const d=data(),entry=d.entries[e.id];return !!entry&&!outcome(e)?.race&&d.careerDay>entry.deadline;}
 function conflicts(e,begin,end){const d=data();return catalog.filter(other=>other.id!==e.id&&d.entries[other.id]&&!outcome(other)?.race&&!isMissed(other)).some(other=>{const x=d.entries[other.id];return begin<=x.deadline&&end>=x.start;});}
+function refreshPendingTracks(){
+ const d=data();if(d.pendingTracks349Done)return;
+ let changed=false;
+ const oldTracks={'junior-gt':['Brands Hatch — GP','Brands Hatch Grand Prix Circuit'],'festival-kart':['Tsukuba Circuit'],'f1-paddock':['Monza'],'gt4-test':['Misano'],'club-wildcard':['Red Bull Ring'],'spa-gt4':['Spa-Francorchamps'],'gt3-test':['Brands Hatch'],'endurance':['Monza']};
+ for(const p of state.plans||[]){
+  const e=catalog.find(x=>x.id===p.opportunity344);if(!e||p.status==='Disputato')continue;
+  const raced=(state.races||[]).some(r=>String(r.planId||'')===String(p.id));if(raced)continue;
+  if((oldTracks[e.id]||[]).includes(p.track)){p.track=e.track;changed=true;}
+ }
+ d.pendingTracks349Done=true;
+ if(changed)mcCloudLocalSave(JSON.stringify(state));
+}
 function display(){
  const target=$('opportunities344Content');if(!target)return;
  const d=data(),tier=rank();
@@ -70,7 +82,7 @@ function join(id){
 }
 function extend(id){const d=data(),e=catalog.find(x=>x.id===id),entry=d.entries[id];if(!e||!entry||entry.extended||isMissed(e)||outcome(e)?.race)return;if(!confirm(tr('Spostare la scadenza di 7 giorni carriera? Il rinvio è utilizzabile una sola volta.','Extend the deadline by 7 career days? Only one extension is allowed.')))return;entry.deadline+=7;entry.extended=true;save();display();}
 function advance(){if(!confirm(tr('Avanzare di 7 giorni carriera? Gli inviti possono scadere.','Advance by 7 career days? Invitations may expire.')))return;data().careerDay+=7;save();display();}
-function init(){if(!$('opportunities344Content'))return;data();
+function init(){if(!$('opportunities344Content'))return;data();refreshPendingTracks();
  if(!$('opportunities344Nav')){const b=document.createElement('button');b.id='opportunities344Nav';b.dataset.page='opportunities344';b.textContent=tr('Opportunità','Opportunities');b.addEventListener('click',()=>{goToPage('opportunities344');display()});$('nav').appendChild(b);}
  $('opportunities344Content').addEventListener('click',ev=>{const b=ev.target.closest('[data-op-join],[data-op-extend],[data-op-week]');if(!b)return;if(b.dataset.opJoin)join(b.dataset.opJoin);else if(b.dataset.opExtend)extend(b.dataset.opExtend);else if(b.dataset.opWeek)advance();});
  display();

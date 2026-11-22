@@ -1,0 +1,1 @@
+v3.4.9 - Cache bust dei moduli, diagnostica Charity Events, aggiornamento sicuro circuiti di opportunita non disputate. Le gare concluse non vengono modificate.\n
