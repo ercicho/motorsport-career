@@ -1,0 +1,1 @@
+v3.4.12: Kart Realistica laps 15,12,14,12,14,12,10,18; fuel calculator disabled in kart briefing (fuel cost unchanged); prefill kart grid and ask for DNF if no finishing position. Existing completed races unchanged.
