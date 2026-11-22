@@ -1,0 +1,1 @@
+v3.4.14: manutenzione selettiva per kart; penalita ECU motore 90-100=0,80-89=-2,70-79=-4,60-69=-6,50-59=-8; sotto 50 revisione obbligatoria. Nessuna modifica retroattiva ai risultati.
