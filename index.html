@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.20</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.21</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -2229,14 +2229,16 @@ function init(){
  const rules=byId('management420Rules'),settings=byId('management420Settings');
  const economy=byId('economyRules');if(economy)rules.appendChild(economy);
  const paddock=byId('world15');
- if(paddock){const heading=[...paddock.querySelectorAll('h2')].find(h=>h.textContent.trim()==='Regolamento Race Control');
-  if(heading){const card=heading.closest('.card');if(card){
-   const details=document.createElement('div');details.className='card';details.innerHTML='<h3>'+t('Regolamento Race Control','Race Control regulations')+'</h3>';
-   let node=heading.nextSibling;const move=[];
-   while(node&&!(node.nodeType===1&&node.matches('h3'))){move.push(node);node=node.nextSibling;}
-   move.forEach(n=>details.appendChild(n));heading.remove();rules.appendChild(details);
-   // Keep dynamic decisions, corrections and forms in the Paddock.
-  }} }
+ if(paddock){
+  // Preserve the original interactive elements and their IDs: no clones or duplicate handlers.
+  const heading=[...paddock.querySelectorAll('h2')].find(h=>h.textContent.trim()==='Regolamento Race Control');
+  const card=heading?.closest('.card');
+  if(card){
+   rules.appendChild(card);
+   // The reputation explanation, automatic decisions and factual correction form
+   // are one cohesive regulation panel, not Paddock dashboard content.
+  }
+ }
  const legacy=byId('career22settings');
  if(legacy){while(legacy.firstChild)settings.appendChild(legacy.firstChild);legacy.remove();}
  const budget=document.createElement('div');budget.className='card';

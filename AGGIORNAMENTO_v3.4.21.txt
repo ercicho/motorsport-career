@@ -1,0 +1,4 @@
+Motorsport Career v3.4.21
+- Spostati Regolamento Race Control, reputazione, decisioni automatiche e correzione dati fattuali in Gestione > Regolamenti, mantenendo i controlli originali.
+- Classifica Kart Academy spostata all'inizio del contenuto Kart Academy.
+- Nessuna modifica ai salvataggi o alla logica sportiva.

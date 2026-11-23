@@ -1,4 +1,4 @@
-/* Kart Academy standings v3.4.19. Opponent finishes are deterministic simulation, not GT7 telemetry. */
+/* Kart Academy standings v3.4.21. Opponent finishes are deterministic simulation, not GT7 telemetry. */
 (function(){
 'use strict';
 const points=[25,18,15,12,10,8,6,4,2,1];
@@ -34,7 +34,10 @@ function mount(){
  if(!node){node=document.createElement('div');node.id='kart345Standings';}
  // Keep the standings INSIDE the Kart Academy section, never as a sibling of a page.
  // Reparent any node created by older versions without rebuilding championship data.
- if(node.parentElement!==anchor)anchor.appendChild(node);
+ // Keep the leaderboard at the top of the Academy, before session cards.
+ // Moving the same node retains the existing standings and avoids duplicates.
+ const first=anchor.firstElementChild;
+ if(node.parentElement!==anchor || node!==first)anchor.insertBefore(node,first);
  render();
 }
 const oldRender=renderGlobal();function renderGlobal(){return typeof window.render==='function'?window.render:null}
