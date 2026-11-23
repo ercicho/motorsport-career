@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.21</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.22</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -1064,7 +1064,7 @@ render();driver224Update();
 
 // v2.3 — reputation breakdown and sponsorship requirements.
 const rep23OldWorldRender=world15Render;
-world15Render=function(){rep23OldWorldRender();const root=$('world15Stats');if(!root)return;let detail=$('rep23Details');if(!detail){detail=document.createElement('div');detail.id='rep23Details';detail.className='card';root.after(detail)}const x=world15Score();detail.innerHTML='<h3>Come viene calcolata la reputazione</h3><p class="helper">La reputazione misura la visibilità sportiva; l’affidabilità misura la condotta nelle gare con rapporto Race Control. Il punteggio è ricalcolato dai risultati esistenti, senza transazioni o bonus salvati due volte.</p>'+x.breakdown.map(([label,value])=>'<div class="money-row"><span>'+esc(label)+'</span><strong>'+ (value>0?'+':'')+value+'</strong></div>').join('')+'<p class="helper">Totale: '+x.score+'/100 (limitato tra 0 e 100). Affidabilità: '+(x.reliability===null?'non valutata':x.reliability+'/100')+'.</p>'};
+world15Render=function(){rep23OldWorldRender();const root=$('world15Stats');if(!root)return;let detail=$('rep23Details');if(!detail){detail=document.createElement('div');detail.id='rep23Details';detail.className='card';(document.getElementById('management420Rules')||root.parentElement).appendChild(detail)}const rulesPanel=document.getElementById('management420Rules');if(rulesPanel&&detail.parentElement!==rulesPanel)rulesPanel.appendChild(detail);const x=world15Score();detail.innerHTML='<h3>Come viene calcolata la reputazione</h3><p class="helper">La reputazione misura la visibilità sportiva; l’affidabilità misura la condotta nelle gare con rapporto Race Control. Il punteggio è ricalcolato dai risultati esistenti, senza transazioni o bonus salvati due volte.</p>'+x.breakdown.map(([label,value])=>'<div class="money-row"><span>'+esc(label)+'</span><strong>'+ (value>0?'+':'')+value+'</strong></div>').join('')+'<p class="helper">Totale: '+x.score+'/100 (limitato tra 0 e 100). Affidabilità: '+(x.reliability===null?'non valutata':x.reliability+'/100')+'.</p>'};
 const rep23SponsorBase=sponsorSign10;
 sponsorSign10=function(id){const required=id==='technical'?40:id==='local'?20:0;if(world15Score().score<required)return alert('Sponsor non disponibile: reputazione richiesta '+required+'/100.');return rep23SponsorBase(id)};
 const rep23Render10Base=render10;
@@ -2228,6 +2228,7 @@ function init(){
  // Move the original DOM nodes rather than cloning their content or event handlers.
  const rules=byId('management420Rules'),settings=byId('management420Settings');
  const economy=byId('economyRules');if(economy)rules.appendChild(economy);
+ const rep=byId('rep23Details');if(rep)rules.appendChild(rep);
  const paddock=byId('world15');
  if(paddock){
   // Preserve the original interactive elements and their IDs: no clones or duplicate handlers.
