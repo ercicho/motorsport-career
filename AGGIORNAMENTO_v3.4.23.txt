@@ -1,0 +1,1 @@
+v3.4.23: Living Paddock unificato nel Paddock; Driver Legacy: bacheca trofei recenti e storici con immagini esistenti. Nessuna modifica a salvataggi o premi.

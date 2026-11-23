@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.22</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.23</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -1141,7 +1141,32 @@ function renderPaddock(){const root=e('paddock26Body');if(!root)return;const dat
  root.innerHTML='<div class="world26-cols"><div class="world26-box"><small>REPUTAZIONE</small><div class="world26-kpi">'+rep+'/100</div><p class="world26-small">Le offerte dipendono da risultati e requisiti reali della carriera.</p></div><div class="world26-box"><small>RAPPRESENTANZA</small><h3>'+(managerReady()?'Manager attivo':'Manager non ingaggiato')+'</h3><p class="world26-small">I test professionali richiedono un manager. Le gare indipendenti restano disponibili.</p></div><div class="world26-box"><small>INVITI GENERATI</small><div class="world26-kpi">'+all.length+'</div><p class="world26-small">Le opportunità vengono rivalutate dai risultati; nessuna offerta inventa gare.</p></div></div><h2>Inviti e opportunità</h2><div class="world26-cols">'+(all.length?all.map(o=>'<div class="world26-box"><small>'+safe(o.level)+' · '+safe(o.game)+'</small><h3>'+safe(o.title)+'</h3><p class="helper">'+safe(o.reason)+' · '+safe(o.track)+' · '+safe(o.car)+'</p><p class="world26-small">Reputazione minima: '+o.minRep+'/100 · Manager richiesto</p><button data-world26-test="'+o.id+'" '+(!o.ready||data.tests.includes(o.id)?'disabled':'')+'>'+(data.tests.includes(o.id)?'Test pianificato':o.ready?'Pianifica test':'Requisiti mancanti')+'</button></div>').join(''):'<div class="home-empty">Nessun invito ancora. Completa le prime gare o una stagione GT7.</div>')+'</div><h2>Notizie dal paddock</h2><div class="card">'+(news.length?news.slice(0,12).map(n=>'<div class="world26-event"><small>'+safe(n.kind||'Carriera')+'</small><strong style="display:block">'+safe(n.title)+'</strong><p class="helper">'+safe(n.body||'')+'</p></div>').join(''):'<p class="helper">Le notizie appariranno dopo risultati e contratti.</p>')+'</div><p class="helper">Le notizie e gli inviti sono simulazioni narrative, non comunicazioni reali delle squadre.</p>'}
 function legacyStats(){const races=state.races||[];const finished=races.filter(r=>r.outcome==='Classificato');const wins=finished.filter(r=>Number(r.finish)===1).length;const podiums=finished.filter(r=>Number(r.finish)>0&&Number(r.finish)<=3).length;const cars=[...new Set(races.map(r=>r.car).filter(Boolean))];const games=[...new Set(races.map(r=>r.game).filter(Boolean))];const seasons=Object.values(state.championships||{}).filter(c=>completed(c.id));const titles=seasons.filter(c=>{try{return champScores(c)?.[0]?.id==='player'}catch{return false}});return {races,finished,wins,podiums,cars,games,seasons,titles}}
 function renderLegacy(){const x=legacyStats(),root=e('legacy26Body');if(!root)return;const metrics=[['Gare',x.races.length],['Arrivi',x.finished.length],['Vittorie',x.wins],['Podi',x.podiums],['Stagioni concluse',x.seasons.length],['Titoli',x.titles.length]];
- root.innerHTML='<div class="world26-cols">'+metrics.map(m=>'<div class="world26-box"><small>'+m[0]+'</small><div class="world26-kpi">'+m[1]+'</div></div>').join('')+'</div><div class="card"><h2>Palmarès</h2>'+(x.titles.length?x.titles.map(c=>'<div class="world26-event"><strong>'+safe(c.title)+'</strong><p class="helper">Titolo conquistato in '+safe(c.game)+'</p></div>').join(''):'<p class="helper">Nessun titolo registrato.</p>')+'<h3>Vetture guidate</h3><p class="helper">'+(x.cars.length?safe(x.cars.join(' · ')):'Nessuna vettura registrata')+'</p><h3>Simulatori</h3><p class="helper">'+(x.games.length?safe(x.games.join(' · ')):'Nessuna gara')+'</p></div><div class="card"><h2>Storia sportiva</h2>'+(x.races.length?x.races.slice().reverse().slice(0,30).map(r=>'<div class="world26-event"><strong>'+safe(r.event||r.track||'Gara')+'</strong><div class="helper">'+safe(r.game)+' · '+safe(r.car||'Vettura non registrata')+' · '+safe(r.outcome==='Classificato'?'P'+r.finish:r.outcome)+'</div></div>').join(''):'<p class="helper">La storia si popolerà con le gare disputate.</p>')+'<button id="world26Csv">Esporta palmarès CSV</button></div>'}
+ root.innerHTML='<div class="world26-cols">'+metrics.map(m=>'<div class="world26-box"><small>'+m[0]+'</small><div class="world26-kpi">'+m[1]+'</div></div>').join('')+'</div><div class="card"><h2>Palmarès</h2>'+(x.titles.length?x.titles.map(c=>'<div class="world26-event"><strong>'+safe(c.title)+'</strong><p class="helper">Titolo conquistato in '+safe(c.game)+'</p></div>').join(''):'<p class="helper">Nessun titolo registrato.</p>')+'<h3>Vetture guidate</h3><p class="helper">'+(x.cars.length?safe(x.cars.join(' · ')):'Nessuna vettura registrata')+'</p><h3>Simulatori</h3><p class="helper">'+(x.games.length?safe(x.games.join(' · ')):'Nessuna gara')+'</p></div><div class="card"><h2>Storia sportiva</h2>'+(x.races.length?x.races.slice().reverse().slice(0,30).map(r=>'<div class="world26-event"><strong>'+safe(r.event||r.track||'Gara')+'</strong><div class="helper">'+safe(r.game)+' · '+safe(r.car||'Vettura non registrata')+' · '+safe(r.outcome==='Classificato'?'P'+r.finish:r.outcome)+'</div></div>').join(''):'<p class="helper">La storia si popolerà con le gare disputate.</p>')+'<button id="world26Csv">Esporta palmarès CSV</button></div>';renderLegacyTrophies();}
+
+function renderLegacyTrophies(){
+ const root=e('legacy26Body');if(!root)return;
+ const old=root.querySelector('#legacy342TrophyBoard');if(old)old.remove();
+ const award=state.kart342Award;
+ const championships=Object.values(state.championships||{}).filter(c=>completed(c.id));
+ const earned=[];
+ if(award&&Number(award.position)>=1&&Number(award.position)<=3){earned.push({name:'Kart Academy',place:Number(award.position),date:award.date||'',kind:'kart'});}
+ for(const c of championships){
+  try{const scores=champScores(c);if(!Array.isArray(scores))continue;
+   const pos=scores.findIndex(x=>x.id==='player');
+   if(pos>=0&&pos<3)earned.push({name:c.title||c.name||'Campionato',place:pos+1,date:c.completedAt||c.endDate||c.date||'',kind:'champ'});
+  }catch(_err){}
+ }
+ earned.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||a.name.localeCompare(b.name));
+ const lang=localStorage.getItem('mc-ui-language')==='en';
+ const t=(it,en)=>lang?en:it;
+ const escT=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const card=(x)=>`<article class="legacy423-trophy"><img src="kart-trophy-${['gold','silver','bronze'][x.place-1]}.png" alt="${t('Trofeo','Trophy')} P${x.place}" loading="lazy"><strong>${escT(x.name)}</strong><span>P${x.place} · ${x.date?escT(String(x.date).slice(0,10)):t('Data non registrata','Date not recorded')}</span></article>`;
+ const recent=earned.slice(0,3),historical=earned.slice(3);
+ const board=document.createElement('div');board.id='legacy342TrophyBoard';board.className='card';
+ board.innerHTML=`<h2>${t('Bacheca trofei','Trophy showcase')}</h2><p class="helper">${t('Riconoscimenti registrati nella carriera. Nessun trofeo viene assegnato per risultati non confermati.','Awards recorded in your career. No trophies are granted for unconfirmed results.')}</p><h3>${t('Trofei recenti','Recent trophies')}</h3><div class="legacy423-carousel">${recent.length?recent.map(card).join(''):`<p class="helper">${t('Nessun trofeo conquistato.','No trophies earned yet.')}</p>`}</div><details class="legacy423-history"><summary>${t('Trofei storici','Older trophies')} (${historical.length})</summary><div class="legacy423-carousel">${historical.length?historical.map(card).join(''):`<p class="helper">${t('Nessun trofeo storico.','No older trophies yet.')}</p>`}</div></details>`;
+ root.insertBefore(board,root.firstChild);
+}
+
 function downloadLegacy(){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const lines=['simulatore,evento,circuito,vettura,qualifica,arrivo,esito',...state.races.map(r=>[r.game,r.event,r.track,r.car,r.qual,r.finish,r.outcome].map(q).join(','))];const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='motorsport-driver-legacy.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 const ENDURANCE=[{id:'gt7-multiclass',title:'GT7 · Multiclasse Gr.1 + Gr.3',game:'GT7',track:'Circuit de la Sarthe — 24h',car:'Gr.1 o Gr.3 (classe dichiarata)',fee:2200,minutes:90,req:'gr1endurance22',multiclass:true},{id:'gt7-90',title:'GT7 · Prototype Endurance 90',game:'GT7',track:'Circuit de Spa-Francorchamps',car:'Gr.1 (vettura conforme)',fee:1600,minutes:90,req:'gr1endurance22'},{id:'acc-60',title:'ACC · GT3 Endurance 60',game:'ACC',track:'Spa-Francorchamps',car:'GT3 del team',fee:2500,minutes:60,req:'acc'},{id:'acc-120',title:'ACC · GT3 Endurance 120',game:'ACC',track:'Mount Panorama',car:'GT3 del team',fee:4500,minutes:120,req:'acc'}];
 function eligibleEndurance(o){const reasons=[];if(o.req==='acc'&&!(typeof path22ACCReady==='function'&&path22ACCReady()))reasons.push('Accesso ACC non ancora sbloccato');if(o.req==='gr1endurance22'&&!completed('gr1endurance22'))reasons.push('Concludere Gr.1 GT7');if(balance()<o.fee)reasons.push('Budget insufficiente');return reasons}
@@ -2351,4 +2376,26 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   return result;
  };
 })();
-</script></body></html>
+</script>
+<style id="layout423-style">
+.legacy423-carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:10px 0 14px;max-width:100%}
+.legacy423-trophy{scroll-snap-align:start;flex:0 0 175px;background:#202a36;border:1px solid #39495a;border-radius:12px;padding:12px;text-align:center;display:flex;flex-direction:column;gap:8px}
+.legacy423-trophy img{height:135px;width:100%;object-fit:contain}.legacy423-trophy span{font-size:12px;color:#bac8d8}.legacy423-history{margin-top:14px}.legacy423-history summary{cursor:pointer;padding:12px;background:#202a36;border-radius:8px}
+#paddock423Living{margin-top:18px}#paddock423Living>h2{margin-top:8px}
+</style>
+<script id="layout423-script">
+(function(){
+ function consolidate(){
+  const main=document.getElementById('world15'),living=document.getElementById('paddock26'),body=document.getElementById('paddock26Body');
+  if(!main||!living||!body)return;
+  let holder=document.getElementById('paddock423Living');
+  if(!holder){holder=document.createElement('div');holder.id='paddock423Living';holder.className='card';holder.innerHTML='<h2>Living Paddock · News &amp; Scouting</h2>';main.appendChild(holder);}
+  if(body.parentElement!==holder)holder.appendChild(body);
+  living.hidden=true;living.style.display='none';
+  document.querySelectorAll('[data-page="paddock26"]').forEach(b=>{b.hidden=true;b.style.display='none'});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',consolidate);else consolidate();
+ document.addEventListener('mc-cloud-restored',consolidate);
+})();
+</script>
+</body></html>
