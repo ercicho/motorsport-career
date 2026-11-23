@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.18</title><script>
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#111720" name="theme-color"/><link href="manifest.webmanifest" rel="manifest"/><title>Motorsport Career v3.4.20</title><script>
 // Bridge deliberately uses the existing career state and preserves legacy save semantics.
 const MC_CLOUD_KEY = 'motorsport-career-v01';
 window.mcCloudLocalSave = function(value) {
@@ -46,7 +46,7 @@ window.mcCloudRestore = function(json) {
 </style>
 <script>
 
-const KEY='motorsport-career-v01';const licenses=['Nazionale B','Nazionale A','Internazionale B','Internazionale A','Superlicenza','Master Nazionale B','Master Nazionale A','Master Internazionale B','Master Internazionale A','Master Superlicenza'];const empty=()=>({championships:{},profile:{driver:'',discipline:'GT / Endurance',bio:''},licences:{},circuits:[],races:[],plans:[],ledger:[],settings:{startingFunds:10000}});let state;try{state={...empty(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{state=empty()}state.championships=state.championships||{};state.ledger=Array.isArray(state.ledger)?state.ledger:[];state.settings=state.settings||{startingFunds:10000};const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function save(){mcCloudLocalSave(JSON.stringify(state));render()}const pages=[['home','Dashboard'],['profile','Pilota'],['licences','Patenti'],['circuits','Circuiti'],['races','Gare'],['calendar','Calendario'],['standings','Classifiche'],['finance','Finanze'],['data','Backup']];$('nav').innerHTML=pages.map(([id,name],i)=>`<button data-page="${id}" class="${i===0?'active':''}">${name}</button>`).join('');$('nav').onclick=e=>{const b=e.target.closest('[data-page]');if(!b)return;document.querySelectorAll('section').forEach(s=>s.classList.toggle('active',s.id===b.dataset.page));document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x===b))};$('home').classList.add('active');
+const KEY='motorsport-career-v01';const licenses=['Nazionale B','Nazionale A','Internazionale B','Internazionale A','Superlicenza','Master Nazionale B','Master Nazionale A','Master Internazionale B','Master Internazionale A','Master Superlicenza'];const empty=()=>({championships:{},profile:{driver:'',discipline:'GT / Endurance',bio:''},licences:{},circuits:[],races:[],plans:[],ledger:[],settings:{startingFunds:Number(localStorage.getItem('mc-next-career-funds'))||10000}});let state;try{state={...empty(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{state=empty()}state.championships=state.championships||{};state.ledger=Array.isArray(state.ledger)?state.ledger:[];state.settings=state.settings||{startingFunds:10000};const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function save(){mcCloudLocalSave(JSON.stringify(state));render()}const pages=[['home','Dashboard'],['profile','Pilota'],['licences','Patenti'],['circuits','Circuiti'],['races','Gare'],['calendar','Calendario'],['standings','Classifiche'],['finance','Finanze'],['data','Backup']];$('nav').innerHTML=pages.map(([id,name],i)=>`<button data-page="${id}" class="${i===0?'active':''}">${name}</button>`).join('');$('nav').onclick=e=>{const b=e.target.closest('[data-page]');if(!b)return;document.querySelectorAll('section').forEach(s=>s.classList.toggle('active',s.id===b.dataset.page));document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x===b))};$('home').classList.add('active');
 const tracks=['Autodrome Lago Maggiore — GP','Autodrome Lago Maggiore — Est','Autodrome Lago Maggiore — Ovest','Autodrome Lago Maggiore — Centro','Brands Hatch — GP','Brands Hatch — Indy','Circuit de Barcelona-Catalunya — GP','Circuit de la Sarthe — 24h','Circuit de Spa-Francorchamps','Daytona International Speedway — Road Course','Daytona International Speedway — Tri-Oval','Deep Forest Raceway','Dragon Trail — Seaside','Dragon Trail — Gardens','Fuji International Speedway','Goodwood Motor Circuit','Grand Valley — Highway 1','High Speed Ring','Kyoto Driving Park — Yamagiwa','Kyoto Driving Park — Miyabi','Mount Panorama Motor Racing Circuit','Nürburgring — GP','Nürburgring — Nordschleife','Red Bull Ring','Road Atlanta','Sardegna — Road Track A','Sardegna — Road Track B','Sardegna — Road Track C','Suzuka Circuit','Tokyo Expressway — Centrale','Tokyo Expressway — Est','Tokyo Expressway — Sud','Trial Mountain Circuit','Tsukuba Circuit','Watkins Glen — Long Course','Watkins Glen — Short Course','WeatherTech Raceway Laguna Seca','Willow Springs — Big Willow','Autopolis International Racing Course','Alsace — Village','Blue Moon Bay Speedway','Broad Bean Raceway','Circuit de Sainte-Croix — A','Circuit de Sainte-Croix — B','Circuit de Sainte-Croix — C','Colorado Springs — Lake','Fishermans Ranch','Lake Louise — Long Track','Northern Isle Speedway','Sardegna — Windmills','Special Stage Route X','Altro…'];
 const venues={
 'GT7':tracks.filter(t=>t!=='Altro…'),
@@ -2205,7 +2205,54 @@ settle();draw();
  kart342Render();
 })();
 </script>
-<style id="race343-style">.race343-card{border:1px solid #52657a;border-radius:14px;padding:16px;background:#131e2a;margin:12px 0}.race343-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:19px}.race343-section{margin:15px 0;padding-top:12px;border-top:1px solid #344353}.race343-section>strong{display:block;margin-bottom:9px}.race343-card table{width:100%;font-size:14px}.race343-card td,.race343-card th{padding:9px 7px}.race343-total{font-weight:800;background:#263849}.race343-podium,.race343-balances{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.race343-podium span,.race343-balances span{flex:1;min-width:125px;background:#223142;border-radius:8px;padding:10px}.race343-balances b{display:block;margin-top:5px}.race343-card small{color:#b6c5d6}@media(max-width:480px){.race343-card{padding:11px}.race343-card table{font-size:12px}.race343-card td,.race343-card th{padding:8px 4px}}</style><style id="opportunity345-style">.opportunity345-card{overflow:hidden}.opportunity345-image{display:block;width:100%;height:210px;object-fit:cover;border-radius:11px;margin-bottom:14px;border:1px solid #344353}@media(max-width:600px){.opportunity345-image{height:165px}}</style><script src="opportunities.js?v=349"></script><script src="charity-events.js?v=349"></script><script>
+<style id="race343-style">.race343-card{border:1px solid #52657a;border-radius:14px;padding:16px;background:#131e2a;margin:12px 0}.race343-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:19px}.race343-section{margin:15px 0;padding-top:12px;border-top:1px solid #344353}.race343-section>strong{display:block;margin-bottom:9px}.race343-card table{width:100%;font-size:14px}.race343-card td,.race343-card th{padding:9px 7px}.race343-total{font-weight:800;background:#263849}.race343-podium,.race343-balances{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.race343-podium span,.race343-balances span{flex:1;min-width:125px;background:#223142;border-radius:8px;padding:10px}.race343-balances b{display:block;margin-top:5px}.race343-card small{color:#b6c5d6}@media(max-width:480px){.race343-card{padding:11px}.race343-card table{font-size:12px}.race343-card td,.race343-card th{padding:8px 4px}}</style><style id="opportunity345-style">.opportunity345-card{overflow:hidden}.opportunity345-image{display:block;width:100%;height:210px;object-fit:cover;border-radius:11px;margin-bottom:14px;border:1px solid #344353}@media(max-width:600px){.opportunity345-image{height:165px}}</style><style id="management420-css">
+#management420 .management420-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+#management420 .management420-tabs button{flex:1;min-width:140px}
+#management420 .management420-panel[hidden]{display:none!important}
+#management420 .card{max-width:100%;overflow-wrap:anywhere}
+#management420 .management420-panel>.card{margin:12px 0}
+#management420 .management420-hint{font-size:13px;color:#afbdcb}
+</style>
+<script id="management420-script">(function(){
+'use strict';
+const byId=id=>document.getElementById(id);
+const t=(it,en)=>localStorage.getItem('mc-ui-language')==='en'?en:it;
+function init(){
+ if(byId('management420'))return;
+ const section=document.createElement('section');section.id='management420';
+ section.innerHTML='<h2>'+t('Gestione · centro di controllo','Management · control centre')+'</h2>'+
+ '<div class="management420-tabs"><button type="button" data-m420="rules" class="primary">'+t('Regolamenti','Regulations')+'</button><button type="button" data-m420="settings">'+t('Impostazioni','Settings')+'</button></div>'+
+ '<div id="management420Rules" class="management420-panel"><p class="management420-hint">'+t('Regole generali. Il briefing della gara conserva le impostazioni specifiche del weekend.','General rules. The race briefing retains weekend-specific settings.')+'</p></div>'+
+ '<div id="management420Settings" class="management420-panel" hidden><p class="management420-hint">'+t('Le impostazioni della carriera attiva non vengono modificate retroattivamente.','Active career settings are not changed retroactively.')+'</p></div>';
+ (byId('data')||document.querySelector('main')).before(section);
+ // Move the original DOM nodes rather than cloning their content or event handlers.
+ const rules=byId('management420Rules'),settings=byId('management420Settings');
+ const economy=byId('economyRules');if(economy)rules.appendChild(economy);
+ const paddock=byId('world15');
+ if(paddock){const heading=[...paddock.querySelectorAll('h2')].find(h=>h.textContent.trim()==='Regolamento Race Control');
+  if(heading){const card=heading.closest('.card');if(card){
+   const details=document.createElement('div');details.className='card';details.innerHTML='<h3>'+t('Regolamento Race Control','Race Control regulations')+'</h3>';
+   let node=heading.nextSibling;const move=[];
+   while(node&&!(node.nodeType===1&&node.matches('h3'))){move.push(node);node=node.nextSibling;}
+   move.forEach(n=>details.appendChild(n));heading.remove();rules.appendChild(details);
+   // Keep dynamic decisions, corrections and forms in the Paddock.
+  }} }
+ const legacy=byId('career22settings');
+ if(legacy){while(legacy.firstChild)settings.appendChild(legacy.firstChild);legacy.remove();}
+ const budget=document.createElement('div');budget.className='card';
+ budget.innerHTML='<h3>'+t('Budget iniziale per nuove carriere','Starting budget for new careers')+'</h3><p class="helper">'+t('Non modifica il saldo né il budget iniziale della carriera attuale.','Does not change the current career balance or its original starting budget.')+'</p><label for="management420Budget">'+t('Crediti iniziali','Starting credits')+'</label><input id="management420Budget" type="number" min="1000" max="100000" step="500" value="10000"><button type="button" id="management420Save" class="smallbutton">'+t('Salva predefinito','Save default')+'</button><p id="management420BudgetNote" class="helper"></p>';
+ settings.prepend(budget);
+ const input=byId('management420Budget');input.value=localStorage.getItem('mc-next-career-funds')||'10000';
+ byId('management420Save').onclick=()=>{const n=Number(input.value);if(!Number.isFinite(n)||n<1000||n>100000){byId('management420BudgetNote').textContent=t('Inserisci un valore tra 1.000 e 100.000.','Enter a value between 1,000 and 100,000.');return;}localStorage.setItem('mc-next-career-funds',String(Math.round(n)));byId('management420BudgetNote').textContent=t('Predefinito salvato per nuove carriere.','Default saved for new careers.');};
+ const nav=byId('nav');const group=[...nav.querySelectorAll('.nav-group')].find(g=>/Gestione|Management/i.test(g.querySelector('.nav-group-trigger')?.textContent||''));
+ if(group){const menu=group.querySelector('.nav-submenu');if(menu){menu.querySelectorAll('[data-page="career22settings"]').forEach(b=>b.remove());const b=document.createElement('button');b.dataset.page='management420';b.textContent=t('Gestione','Management');menu.appendChild(b);}}
+ else {const b=document.createElement('button');b.dataset.page='management420';b.textContent=t('Gestione','Management');nav.appendChild(b);}
+ const show=name=>{byId('management420Rules').hidden=name!=='rules';byId('management420Settings').hidden=name!=='settings';section.querySelectorAll('[data-m420]').forEach(b=>b.classList.toggle('primary',b.dataset.m420===name));};
+ section.querySelectorAll('[data-m420]').forEach(b=>b.onclick=()=>show(b.dataset.m420));show('rules');
+ // Existing navigation's event delegation recognizes data-page buttons.
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();</script><script src="opportunities.js?v=349"></script><script src="charity-events.js?v=349"></script><script>
 (function(){
  const charity=document.getElementById('charity347Content');
  const opportunity=document.getElementById('opportunities344Content');
@@ -2236,7 +2283,7 @@ settle();draw();
   return original.call(this);
  };
 })();
-</script><script src="kart-standings.js?v=3415"></script><style id="rc418-style">
+</script><script src="kart-standings.js?v=3419"></script><style id="rc418-style">
 #rc418List{display:grid;gap:12px;margin:12px 0}.rc418-entry{border:1px solid #40516a;border-radius:12px;padding:13px;background:#192532}.rc418-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.rc418-entry label{margin-top:5px}.rc418-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.rc418-actions{display:flex;flex-wrap:wrap;gap:8px}.rc418-entry select{min-width:0}.rc418-entry select:disabled{opacity:.6}@media(max-width:650px){.rc418-fields{grid-template-columns:1fr}}
 </style>
 <script id="rc418-script">

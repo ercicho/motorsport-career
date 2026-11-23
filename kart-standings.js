@@ -1,4 +1,4 @@
-/* Kart Academy standings v3.4.15. Opponent finishes are deterministic simulation, not GT7 telemetry. */
+/* Kart Academy standings v3.4.19. Opponent finishes are deterministic simulation, not GT7 telemetry. */
 (function(){
 'use strict';
 const points=[25,18,15,12,10,8,6,4,2,1];
@@ -27,7 +27,16 @@ function render(){const host=document.getElementById('kart345Standings');if(!hos
  const legacy=document.getElementById('kart342Panel');if(legacy){legacy.style.display='none';}
  if(m.played===m.plans.length&&!state.kart342Award){const award=[1200,700,350][rank-1]||0;state.kart342Award={position:rank,amount:award,date:new Date().toISOString(),automatic:true};if(award&&!(state.ledger||[]).some(x=>x.ref==='kart342-final-award'))addTransaction('Kart Academy · bonus classifica finale P'+rank,award,'kart342-final-award');window.mcCloudLocalSave(JSON.stringify(state));}
 }
-function mount(){const anchor=document.getElementById('academyKart20')||document.getElementById('road18');if(!anchor)return;let node=document.getElementById('kart345Standings');if(!node){node=document.createElement('div');node.id='kart345Standings';anchor.parentNode.insertBefore(node,anchor.nextSibling);}render();}
+function mount(){
+ const anchor=document.getElementById('academyKart20')||document.getElementById('road18');
+ if(!anchor)return;
+ let node=document.getElementById('kart345Standings');
+ if(!node){node=document.createElement('div');node.id='kart345Standings';}
+ // Keep the standings INSIDE the Kart Academy section, never as a sibling of a page.
+ // Reparent any node created by older versions without rebuilding championship data.
+ if(node.parentElement!==anchor)anchor.appendChild(node);
+ render();
+}
 const oldRender=renderGlobal();function renderGlobal(){return typeof window.render==='function'?window.render:null}
 // `render` is a global lexical function in the original application; wrapping it keeps updates live.
 try{const prior=window.render;if(typeof prior==='function'){window.render=function(...args){const x=prior.apply(this,args);queueMicrotask(mount);return x;};}}catch{}

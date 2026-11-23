@@ -1,0 +1,1 @@
+v3.4.19: classifica Kart Academy spostata dentro la sezione Karting Academy; Paddock invariato. Nessuna migrazione dei dati.

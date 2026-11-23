@@ -1,0 +1,1 @@
+v3.4.20: Centro Gestione con Regolamenti e Impostazioni; spostati i regolamenti economici e Race Control; budget predefinito nuove carriere. Non modifica salvataggi esistenti.
